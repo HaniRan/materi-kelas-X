@@ -1,0 +1,1077 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kursus Perulangan For</title>
+<style>
+:root{
+  --bg:#ffffff; --soft:#f6f8fa; --ink:#1f2328; --muted:#59636e; --line:#d1d9e0;
+  --accent:#0969da; --accent-soft:#ddf4ff;
+  --ok:#1a7f37; --ok-soft:#dafbe1; --bad:#cf222e; --bad-soft:#ffebe9; --warn-soft:#fff8c5;
+  --c-init:#8250df; --c-cond:#9a6700; --c-body:#1a7f37; --c-upd:#0969da; --c-end:#cf222e;
+  --t-kw:#cf222e; --t-str:#0a3069; --t-num:#0550ae; --t-fn:#8250df;
+  --sans:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono:ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg); color:var(--ink); font-family:var(--sans); font-size:16px; line-height:1.6}
+h1,h2,h3{line-height:1.25; margin:0; text-wrap:balance}
+h1{font-size:1.75rem} h2{font-size:1.25rem} h3{font-size:1rem}
+p{margin:0; max-width:68ch}
+code{font-family:var(--mono); font-size:.88em; background:var(--soft); border:1px solid var(--line); padding:.05em .35em; border-radius:4px}
+button{font:inherit}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+[hidden]{display:none!important}
+
+.topbar{position:sticky; top:0; z-index:5; background:var(--bg); border-bottom:1px solid var(--line); padding:10px 16px; padding-top:calc(10px + env(safe-area-inset-top,0px)); display:flex; align-items:center; gap:16px; flex-wrap:wrap}
+.brand{font-weight:700}
+.prog{display:flex; align-items:center; gap:8px; font-size:.85rem; color:var(--muted); flex:1; min-width:180px}
+.prog .bar{flex:1; max-width:220px; height:8px; background:var(--soft); border:1px solid var(--line); border-radius:4px; overflow:hidden}
+.prog .bar i{display:block; height:100%; background:var(--ok); width:0; transition:width .4s}
+.who{font-size:.85rem; color:var(--muted)}
+.sync{font-size:.8rem; padding:2px 10px; border-radius:12px; border:1px solid var(--line)}
+.sync.ok{color:var(--ok); background:var(--ok-soft); border-color:#aceebb}
+.sync.bad{color:#82071e; background:var(--bad-soft); border-color:#ffcecb}
+.sync.wait{color:#7d4e00; background:var(--warn-soft); border-color:#eac54f}
+.linkbtn{background:none; border:0; color:var(--accent); cursor:pointer; padding:0; font-size:.85rem}
+
+.start{max-width:440px; margin:48px auto; padding-inline:16px; display:flex; flex-direction:column; gap:16px}
+.start p{color:var(--muted)}
+.field{display:flex; flex-direction:column; gap:4px}
+.field label{font-size:.88rem; font-weight:600}
+.field input{width:100%; min-width:0; font:inherit; padding:8px 10px; border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--ink)}
+.row2{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px}
+.err{color:var(--bad); font-size:.88rem}
+
+.btn{padding:8px 16px; border-radius:6px; border:1px solid var(--line); background:var(--soft); color:var(--ink); cursor:pointer; font-weight:600; font-size:.92rem}
+.btn:hover:not(:disabled){background:#eef1f4}
+.btn:disabled{opacity:.5; cursor:not-allowed}
+.btn.primary{background:var(--ok); border-color:var(--ok); color:#fff}
+.btn.primary:hover:not(:disabled){background:#116329}
+.btn.blue{background:var(--accent); border-color:var(--accent); color:#fff}
+.btn.blue:hover:not(:disabled){background:#0550ae}
+
+.app{display:grid; grid-template-columns:250px minmax(0,1fr); max-width:1180px; margin:0 auto}
+.side{border-right:1px solid var(--line); padding:20px 12px; display:flex; flex-direction:column; gap:2px; position:sticky; top:53px; align-self:start; max-height:calc(100vh - 53px); overflow-y:auto}
+.side .lbl{font-size:.75rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; padding:0 10px 8px}
+.babbtn{display:flex; align-items:center; gap:10px; width:100%; text-align:left; background:none; border:0; border-radius:6px; padding:8px 10px; cursor:pointer; color:var(--ink); font-size:.92rem}
+.babbtn:hover:not(:disabled){background:var(--soft)}
+.babbtn[aria-current="true"]{background:var(--accent-soft); font-weight:600}
+.babbtn:disabled{color:var(--muted); cursor:not-allowed}
+.babbtn .ic{flex:none; width:22px; height:22px; border-radius:50%; display:grid; place-items:center; font-size:.72rem; font-weight:700; border:1.5px solid var(--line); color:var(--muted)}
+.babbtn.done .ic{background:var(--ok); border-color:var(--ok); color:#fff}
+.babbtn.open .ic{border-color:var(--accent); color:var(--accent)}
+.babbtn .t{flex:1; min-width:0}
+.babbtn .s{font-size:.75rem; color:var(--muted); font-variant-numeric:tabular-nums}
+
+.main{padding:28px 32px 80px; display:flex; flex-direction:column; gap:20px; min-width:0}
+.crumb{font-size:.85rem; color:var(--muted)}
+.content{display:flex; flex-direction:column; gap:16px}
+.content ul{margin:0; padding-left:1.2em; max-width:68ch}
+.box{border:1px solid var(--line); border-radius:6px; padding:14px 16px; background:var(--soft)}
+.box.tip{border-left:4px solid var(--accent)}
+.box.life{border-left:4px solid #bf8700; background:#fffdf4}
+.box.life > b:first-child{display:block; margin-bottom:4px; color:#7d4e00}
+pre.code{margin:0; background:var(--soft); border:1px solid var(--line); border-radius:6px; padding:12px 14px; font-family:var(--mono); font-size:.86rem; line-height:1.6; overflow-x:auto; white-space:pre}
+.t-kw{color:var(--t-kw)} .t-str{color:var(--t-str)} .t-num{color:var(--t-num)} .t-fn{color:var(--t-fn)}
+.two{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+.two > div{display:flex; flex-direction:column; gap:6px; min-width:0}
+.cap{font-size:.85rem; color:var(--muted)}
+table.map{border-collapse:collapse; font-size:.92rem; width:100%; max-width:640px}
+table.map td,table.map th{border:1px solid var(--line); padding:6px 10px; text-align:left; vertical-align:top}
+table.map th{background:var(--soft)}
+.tw{overflow-x:auto}
+
+.big-for{font-family:var(--mono); font-size:clamp(.95rem,3vw,1.4rem); overflow-x:auto; white-space:nowrap; padding:18px 12px; border:1px solid var(--line); border-radius:6px; text-align:center}
+.big-for .p{padding:.1em .25em; border-bottom:3px solid; transition:background .3s}
+.big-for .p.lit{background:var(--warn-soft)}
+.pi{border-color:var(--c-init)} .pc{border-color:var(--c-cond)} .pu{border-color:var(--c-upd)} .pb{border-color:var(--c-body)}
+.parts{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px}
+.parts div{border-top:3px solid; padding-top:8px; font-size:.9rem; color:var(--muted)}
+.parts b{display:block; color:var(--ink)}
+
+.sim{border:1px solid var(--line); border-radius:8px; overflow:hidden}
+.sim-head{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 14px; background:var(--soft); border-bottom:1px solid var(--line); font-weight:600; font-size:.92rem; flex-wrap:wrap}
+.sim-head .st{font-weight:400; font-size:.8rem; color:var(--muted)}
+.sim-head .st.ok{color:var(--ok); font-weight:600}
+.sim-body{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:16px; padding:14px}
+.sim-body > div{display:flex; flex-direction:column; gap:12px; min-width:0}
+.custom{display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; padding:12px 14px; border-bottom:1px solid var(--line)}
+.custom label{display:flex; flex-direction:column; gap:3px; font-size:.78rem; color:var(--muted); font-family:var(--mono)}
+.custom input,.custom select{font:inherit; font-family:var(--mono); font-size:.9rem; padding:5px 8px; border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--ink); width:84px}
+.custom select{width:auto}
+
+.codep{border:1px solid var(--line); border-radius:6px; font-family:var(--mono); font-size:.88rem; overflow-x:auto; padding:6px 0; background:var(--bg)}
+.ln{display:flex; align-items:center; gap:10px; padding:2px 12px 2px 0; white-space:pre; border-left:3px solid transparent; transition:background .2s}
+.ln .no{width:2.2em; text-align:right; color:#8c959f; flex:none; user-select:none}
+.ln.active{background:var(--warn-soft); border-left-color:var(--hl,var(--accent))}
+.ln[data-ph="init"]{--hl:var(--c-init)} .ln[data-ph="cond"]{--hl:var(--c-cond)} .ln[data-ph="body"]{--hl:var(--c-body)} .ln[data-ph="upd"]{--hl:var(--c-upd)} .ln[data-ph="end"],.ln[data-ph="pre"],.ln[data-ph="warn"]{--hl:var(--c-end)}
+.part{border-radius:3px; padding:0 2px; transition:box-shadow .2s}
+.part.on{box-shadow:0 0 0 2px var(--hl)}
+.chip{font-size:.72rem; font-family:var(--mono); padding:0 7px; border-radius:10px; color:#fff; background:var(--hl,var(--accent)); animation:pop .3s ease}
+@keyframes pop{from{transform:scale(.5); opacity:0}}
+
+.ctrl{display:flex; flex-wrap:wrap; gap:6px; align-items:center}
+.ctrl .btn{padding:6px 12px; font-size:.85rem}
+.speed{display:flex; align-items:center; gap:6px; font-size:.78rem; color:var(--muted); margin-left:auto}
+.speed input{width:80px; accent-color:var(--accent)}
+.stepinfo{display:flex; align-items:center; gap:8px; font-size:.78rem; color:var(--muted); font-family:var(--mono)}
+.stepinfo .bar{flex:1; height:4px; background:var(--soft); border-radius:2px; overflow:hidden}
+.stepinfo .bar i{display:block; height:100%; width:0; background:var(--accent); transition:width .25s}
+.note{border:1px solid var(--line); border-left:4px solid var(--hl,var(--accent)); border-radius:6px; padding:10px 12px; font-size:.92rem; min-height:76px}
+.note[data-ph="init"]{--hl:var(--c-init)} .note[data-ph="cond"]{--hl:var(--c-cond)} .note[data-ph="body"]{--hl:var(--c-body)} .note[data-ph="upd"]{--hl:var(--c-upd)} .note[data-ph="end"],.note[data-ph="done"],.note[data-ph="warn"],.note[data-ph="pre"]{--hl:var(--c-end)}
+.note .ph{display:block; font-size:.72rem; font-weight:700; color:var(--hl,var(--accent)); text-transform:uppercase; letter-spacing:.05em}
+.yes{color:var(--ok)} .no{color:var(--bad)}
+
+.flow{width:100%; height:auto; display:block}
+.flow rect{fill:var(--bg); stroke:var(--line); stroke-width:1.5; transition:fill .25s, stroke .25s}
+.flow text{fill:var(--ink); font-family:var(--sans); font-size:13px; font-weight:600; text-anchor:middle}
+.flow .sub{font-family:var(--mono); font-size:10.5px; font-weight:400; fill:var(--muted)}
+.flow .edge{fill:none; stroke:#8c959f; stroke-width:1.4}
+.flow .lb{font-family:var(--mono); font-size:11px; font-weight:600; text-anchor:start}
+.flow .node{transform-box:fill-box; transform-origin:center}
+.flow .node.on rect{stroke:var(--nc); stroke-width:2.5; fill:var(--nf)}
+.flow .node.on{animation:pulse .45s ease}
+@keyframes pulse{50%{transform:scale(1.05)}}
+.flow [data-node="init"]{--nc:var(--c-init); --nf:#fbefff} .flow [data-node="cond"]{--nc:var(--c-cond); --nf:var(--warn-soft)} .flow [data-node="body"]{--nc:var(--c-body); --nf:var(--ok-soft)} .flow [data-node="upd"]{--nc:var(--c-upd); --nf:var(--accent-soft)} .flow [data-node="end"]{--nc:var(--c-end); --nf:var(--bad-soft)}
+
+.vars{display:flex; flex-wrap:wrap; gap:8px}
+.var{border:1px solid var(--line); border-radius:6px; padding:6px 12px; min-width:80px; text-align:center}
+.var .k{display:block; font-family:var(--mono); font-size:.72rem; color:var(--muted)}
+.var .v{display:block; font-family:var(--mono); font-size:1.5rem; font-weight:600; font-variant-numeric:tabular-nums; line-height:1.2}
+.var.bump .v{animation:bump .4s ease}
+@keyframes bump{from{transform:translateY(-8px); opacity:0; color:var(--accent)}}
+.track{display:flex; gap:5px; overflow-x:auto; padding:20px 2px 4px}
+.tile{flex:none; position:relative; min-width:40px; height:40px; padding:0 6px; border:1.5px dashed var(--line); border-radius:6px; display:grid; place-items:center; font-family:var(--mono); font-weight:600; color:var(--muted); transition:all .25s}
+.tile.seen{border-style:solid; border-color:var(--ok); background:var(--ok-soft); color:var(--ink)}
+.tile.cur{border-style:solid; border-color:var(--accent); background:var(--accent-soft); color:var(--ink); transform:translateY(-3px)}
+.tile.cur::before{content:"i"; position:absolute; top:-19px; font-size:.72rem; color:var(--accent)}
+.tile.fail{border-color:var(--bad); background:var(--bad-soft); color:var(--bad)}
+.tile.fail::after{content:"false"; position:absolute; top:-19px; font-size:.65rem; color:var(--bad)}
+.tile.fail::before{content:none}
+.tile.in{animation:pop .3s ease}
+.tryit .tile.cur::before{content:none}
+.small-lbl{font-size:.75rem; color:var(--muted); font-weight:600}
+.console{border:1px solid var(--line); border-radius:6px; background:var(--soft); font-family:var(--mono); font-size:.85rem; padding:8px 12px; min-height:96px; max-height:220px; overflow-y:auto}
+.console .o{display:block; white-space:pre-wrap}
+.console .o::before{content:"> "; color:#8c959f}
+.console .o.new{animation:slide .3s ease}
+.console .e{color:var(--muted)}
+@keyframes slide{from{transform:translateX(-10px); opacity:0}}
+
+.scene{border-bottom:1px solid var(--line); padding:14px; background:#fbfcfd; display:flex; flex-direction:column; gap:10px; overflow:hidden}
+.scene .say{font-size:.92rem; min-height:1.6em}
+.em{font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif; line-height:1}
+.kids{display:flex; flex-wrap:wrap; gap:10px; padding-top:24px}
+.kid{position:relative; width:66px; border:1.5px solid var(--line); border-radius:8px; padding:6px 4px; display:flex; flex-direction:column; align-items:center; gap:3px; background:var(--bg); transition:transform .3s, border-color .3s}
+.kid .em{font-size:28px}
+.kid .nm{font-size:.72rem; color:var(--muted); font-family:var(--mono)}
+.kid .bd{font-size:.68rem; font-weight:700; background:var(--ok-soft); color:var(--ok); padding:0 6px; border-radius:10px; opacity:0; transform:scale(.4); transition:all .3s}
+.kid .ptr{position:absolute; top:-26px; font-size:20px; opacity:0; transition:opacity .2s}
+.kid.cur{border-color:var(--accent); transform:translateY(-4px)}
+.kid.cur .ptr{opacity:1; animation:bob .6s ease infinite alternate}
+.kid.done .bd{opacity:1; transform:none}
+@keyframes bob{to{transform:translateY(-4px)}}
+
+.gate{height:100px; position:relative; border-bottom:3px solid #8c959f; max-width:440px}
+.gate .stud{position:absolute; left:0; bottom:2px; font-size:34px; transition:left 1.1s ease}
+.gate .stud.in{left:calc(100% - 90px)}
+.gate .post{position:absolute; left:46%; bottom:0; width:8px; height:76px; background:#8c959f; border-radius:2px}
+.gate .door{position:absolute; left:calc(46% + 8px); bottom:0; height:58px; width:70px; background:repeating-linear-gradient(90deg,#57606a 0 3px,transparent 3px 9px); border-top:3px solid #57606a; transform-origin:left bottom; transition:transform .6s}
+.gate .door.open{transform:scaleX(.08)}
+.gate .sign{position:absolute; left:calc(46% - 46px); top:0; font-family:var(--mono); font-size:.78rem; background:var(--bg); border:1.5px solid var(--line); border-radius:6px; padding:1px 8px; transition:all .3s}
+.gate .sign.ok{border-color:var(--ok); background:var(--ok-soft)}
+.gate .school{position:absolute; right:0; bottom:2px; font-size:42px}
+.clock{font-family:var(--mono); font-size:.85rem}
+
+.laps{display:flex; align-items:center; gap:18px; flex-wrap:wrap}
+.laps svg{width:180px; height:auto; flex:none}
+.laps .arm{transform-box:view-box; transform-origin:90px 65px; transition:transform 1.1s ease-in-out}
+.flags{display:flex; gap:6px; flex-wrap:wrap}
+.flag{width:30px; height:30px; border:1.5px dashed var(--line); border-radius:6px; display:grid; place-items:center; font-family:var(--mono); font-weight:700; color:var(--muted); transition:all .3s}
+.flag.done{border-style:solid; border-color:var(--ok); background:var(--ok-soft); color:var(--ok)}
+.lapnum{font-size:1.1rem; font-weight:700}
+
+.rocket{position:relative; height:150px; display:flex; align-items:center; gap:30px; padding-left:16px}
+.rocket .ship{font-size:54px; display:inline-block; transform:rotate(-45deg); transition:transform 1.4s ease-in}
+.rocket .ship.go{transform:translateY(-260px) rotate(-45deg)}
+.rocket .ship.shake{animation:shake .15s linear infinite}
+@keyframes shake{50%{transform:translateX(2px) rotate(-45deg)}}
+.rocket .count{font-family:var(--mono); font-size:3.2rem; font-weight:700; min-width:2ch; text-align:center}
+.rocket .count.tick{animation:tick .4s ease}
+@keyframes tick{from{transform:scale(1.6); color:var(--bad)}}
+.rocket .pad{position:absolute; left:4px; bottom:20px; width:90px; height:6px; background:#8c959f; border-radius:3px}
+
+.stairs{position:relative; height:170px; max-width:440px; display:flex; align-items:flex-end; gap:2px; padding-top:40px}
+.stairs .st{flex:1; background:var(--soft); border:1px solid var(--line); border-bottom:0; display:flex; align-items:flex-end; justify-content:center; font-family:var(--mono); font-size:.7rem; color:var(--muted); transition:background .3s}
+.stairs .st.hit{background:var(--ok-soft); border-color:var(--ok); color:var(--ok); font-weight:700}
+.stairs .walker{position:absolute; font-size:28px; transform:translateX(-50%); transition:left .5s ease, bottom .5s ease}
+
+.groups{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.queue{display:flex; gap:6px; flex-wrap:wrap; min-height:40px; align-items:center}
+.gbox{border:1.5px solid var(--line); border-radius:8px; padding:8px; min-height:72px}
+.gbox h4{margin:0 0 6px; font-size:.8rem}
+.gbox .in{display:flex; gap:6px; flex-wrap:wrap}
+.chipkid{display:inline-flex; align-items:center; gap:3px; border:1px solid var(--line); border-radius:14px; padding:1px 8px 1px 4px; font-size:.78rem; font-family:var(--mono); background:var(--bg); transition:transform .3s}
+.chipkid .em{font-size:18px}
+.chipkid.cur{border-color:var(--accent); background:var(--accent-soft); transform:translateY(-3px)}
+.chipkid.pop{animation:pop .4s ease}
+.gbox.even{border-color:#4ac26b; background:#f6fff8}
+.gbox.odd{border-color:#54aeff; background:#f5faff}
+
+.piggy{display:flex; align-items:center; gap:20px; flex-wrap:wrap; padding-top:30px}
+.piggy .pig{position:relative; font-size:60px; width:80px; text-align:center}
+.piggy .coin{position:absolute; left:50%; top:-40px; font-size:24px; opacity:0; transform:translateX(-50%)}
+.piggy .coin.drop{animation:drop .7s ease-in}
+@keyframes drop{0%{opacity:1; top:-40px} 80%{opacity:1; top:10px} 100%{opacity:0; top:14px}}
+.piggy .sum{font-family:var(--mono); font-size:1.6rem; font-weight:700}
+.piggy .log{font-size:.85rem; color:var(--muted); font-family:var(--mono)}
+
+.tryit{border-top:1px solid var(--line); padding:12px 14px; display:flex; flex-direction:column; gap:10px; background:var(--bg)}
+.tryit-head{display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap}
+.tryit-head b{font-size:.92rem}
+.ed{width:100%; font-family:var(--mono); font-size:.88rem; line-height:1.6; padding:10px 12px; border:1px solid var(--line); border-radius:6px; background:var(--soft); color:var(--ink); resize:vertical; tab-size:2; white-space:pre; overflow-x:auto}
+.ed:focus{background:var(--bg)}
+.ed:disabled{opacity:.8}
+.ed-msg{font-size:.88rem; border-radius:6px; padding:8px 10px}
+.ed-msg.bad{background:var(--bad-soft); color:#82071e}
+.ed-msg.ok{background:var(--ok-soft); color:#116329}
+.ed-grid{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px}
+.ed-grid > div{min-width:0; display:flex; flex-direction:column; gap:4px}
+
+.quiz{border:1px solid var(--line); border-radius:8px}
+.quiz-head{padding:12px 16px; border-bottom:1px solid var(--line); background:var(--soft); display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:center}
+.quiz-head span{font-size:.85rem; color:var(--muted)}
+.quiz-body{padding:16px; display:flex; flex-direction:column; gap:22px}
+.locked{padding:20px 16px; color:var(--muted); display:flex; flex-direction:column; gap:6px}
+.q{display:flex; flex-direction:column; gap:8px; border:0; padding:0; margin:0; min-width:0}
+.q .qt{font-weight:600; padding:0}
+.q .tagk{display:inline-block; font-size:.7rem; font-weight:700; background:#fbefff; color:var(--c-init); border-radius:10px; padding:0 8px; margin-left:6px; vertical-align:middle}
+.opts{display:flex; flex-direction:column; gap:6px}
+.opt{display:flex; align-items:flex-start; gap:8px; border:1px solid var(--line); border-radius:6px; padding:8px 10px; cursor:pointer; font-size:.92rem}
+.opt:hover{background:var(--soft)}
+.opt input{margin-top:4px}
+.opt.right{border-color:var(--ok); background:var(--ok-soft)}
+.opt.wrong{border-color:var(--bad); background:var(--bad-soft)}
+.review .opt{cursor:default}
+.expl{font-size:.88rem; color:var(--muted); border-left:3px solid var(--line); padding-left:10px}
+.result{border-radius:6px; padding:14px 16px; display:flex; flex-direction:column; gap:8px}
+.result.pass{background:var(--ok-soft); border:1px solid #aceebb}
+.result.fail{background:var(--bad-soft); border:1px solid #ffcecb}
+.result .big{font-size:1.6rem; font-weight:700; font-variant-numeric:tabular-nums}
+.send{font-size:.85rem; color:var(--muted)}
+.actions{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+
+.demo{background:var(--warn-soft); border-bottom:1px solid #eac54f; font-size:.85rem; padding:6px 16px; text-align:center}
+table.sum{border-collapse:collapse; font-size:.92rem; width:100%; max-width:480px}
+table.sum td,table.sum th{border-bottom:1px solid var(--line); padding:6px 8px; text-align:left}
+table.sum td.n{text-align:right; font-variant-numeric:tabular-nums}
+
+@media (max-width:860px){
+  .app{grid-template-columns:1fr}
+  .side{position:static; max-height:none; border-right:0; border-bottom:1px solid var(--line); flex-direction:row; overflow-x:auto; padding:10px 12px; gap:4px}
+  .side .lbl{display:none}
+  .babbtn{width:auto; flex:none}
+  .babbtn .s{display:none}
+  .main{padding:20px 16px 60px}
+  .sim-body,.two,.ed-grid{grid-template-columns:1fr}
+  .parts{grid-template-columns:1fr 1fr}
+  .speed{margin-left:0}
+}
+@media (max-width:420px){ .groups{grid-template-columns:1fr} .kid{width:56px} }
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important; transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="demo" id="demo" hidden>Mode uji coba: database belum diatur di <code>config.js</code>, jadi nilai belum dikirim ke guru.</div>
+
+<header class="topbar">
+  <span class="brand">Kursus Perulangan For</span>
+  <div class="prog" id="prog" hidden><span id="progtxt">0/6 bab</span><div class="bar"><i id="progbar"></i></div></div>
+  <span class="sync" id="sync" hidden></span>
+  <span class="who" id="who" hidden></span>
+</header>
+
+<section class="start" id="start" hidden>
+  <h1>Selamat datang</h1>
+  <p>Kursus ini lanjutan dari materi percabangan <code>if</code>. Kerjakan bab secara berurutan. Bab berikutnya terbuka setelah kamu lulus kuis bab sebelumnya. Nilai kuis otomatis dikirim ke guru.</p>
+  <form id="startform" style="display:flex; flex-direction:column; gap:16px">
+    <div class="field"><label for="f-nama">Nama lengkap</label><input id="f-nama" required maxlength="80" autocomplete="name"></div>
+    <div class="row2">
+      <div class="field"><label for="f-kelas">Kelas</label><input id="f-kelas" required maxlength="20" placeholder="mis. X RPL 1"></div>
+      <div class="field"><label for="f-absen">No. absen</label><input id="f-absen" type="number" min="1" max="99" required></div>
+    </div>
+    <p class="err" id="starterr" hidden></p>
+    <div><button class="btn primary" type="submit">Mulai belajar</button></div>
+  </form>
+</section>
+
+<div class="app" id="app" hidden>
+  <nav class="side" id="side" aria-label="Daftar bab"></nav>
+  <main class="main" id="main"></main>
+</div>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+"use strict";
+const CFG=Object.assign({SUPABASE_URL:"",SUPABASE_ANON_KEY:"",KKM:70},window.KURSUS_CONFIG||{});
+let db=null;
+try{ if(CFG.SUPABASE_URL&&CFG.SUPABASE_ANON_KEY&&window.supabase) db=window.supabase.createClient(CFG.SUPABASE_URL,CFG.SUPABASE_ANON_KEY,{auth:{persistSession:false}}); }catch(e){ db=null; }
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+function hl(t){
+  return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+   .replace(/("[^"]*")|\b(for|let|if|else|const)\b|(console\.log)|(\b\d+\b)/g,(m,s,k,c,n)=>
+    s?`<span class="t-str">${s}</span>`:k?`<span class="t-kw">${k}</span>`:c?`<span class="t-fn">${c}</span>`:`<span class="t-num">${n}</span>`);
+}
+const code=t=>`<pre class="code">${hl(t)}</pre>`;
+const restart=(el,cls)=>{el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls);};
+
+/* ===== Menjalankan kode siswa dengan aman (Web Worker + pengaman loop abadi) ===== */
+const WORKER_SRC=`self.onmessage=function(e){var ev=[],g=0;
+ function fmt(x){return typeof x==="string"?x:(x===undefined?"undefined":JSON.stringify(x));}
+ var con={log:function(){ if(ev.length<400) ev.push({t:"o",s:Array.prototype.map.call(arguments,fmt).join(" ")}); }};
+ con.error=con.log; con.warn=con.log; con.info=con.log;
+ function __t(n,v){ if(++g>3000) throw new Error("__LOOP__"); if(ev.length<400) ev.push({t:"l",n:n,v:v}); }
+ try{ (new Function("console","__t",e.data))(con,__t); postMessage({ok:true,ev:ev}); }
+ catch(err){ postMessage({ok:false,ev:ev,err:(err&&err.name?err.name+": ":"")+(err&&err.message||String(err))}); }
+};`;
+let WURL=null;
+function instrument(src){
+  return src.replace(/\bfor\s*\(\s*(?:let|var)\s+([A-Za-z_$][\w$]*)[^)]*\)\s*\{/g,(m,n)=>m+`__t(${JSON.stringify(n)},${n});`)
+            .replace(/\bwhile\s*\([^)]*\)\s*\{/g,m=>m+`__t("",0);`);
+}
+function runCode(src){
+  return new Promise(res=>{
+    let w;
+    try{ if(!WURL) WURL=URL.createObjectURL(new Blob([WORKER_SRC],{type:"text/javascript"})); w=new Worker(WURL); }
+    catch(e){ res({ok:false,err:"__NOWORKER__",ev:[]}); return; }
+    const t=setTimeout(()=>{ w.terminate(); res({ok:false,err:"__LOOP__",ev:[]}); },2000);
+    w.onmessage=e=>{ clearTimeout(t); w.terminate(); res(e.data); };
+    w.onerror=e=>{ clearTimeout(t); w.terminate(); e.preventDefault(); res({ok:false,err:"__NOWORKER__",ev:[]}); };
+    w.postMessage(instrument(src));
+  });
+}
+function errText(err){
+  if(!err) return "";
+  if(err.includes("__LOOP__")) return "Program dihentikan karena perulangannya tidak pernah berhenti (infinite loop). Periksa kondisi dan bagian update.";
+  if(err.includes("__NOWORKER__")) return "Kode tidak bisa dijalankan di halaman ini. Coba buka kursus dari link yang diberikan guru.";
+  if(err.startsWith("SyntaxError")) return "Ada kesalahan penulisan kode (SyntaxError). Cek tanda kurung ( ), kurung kurawal { }, titik koma ;, dan tanda kutip. Pesan asli: "+err.replace("SyntaxError: ","");
+  if(err.startsWith("ReferenceError")) return "Ada nama yang belum dibuat atau salah ketik (ReferenceError). Pesan asli: "+err.replace("ReferenceError: ","");
+  return "Terjadi kesalahan: "+err;
+}
+function tabKey(ta){
+  ta.addEventListener("keydown",e=>{
+    if(e.key==="Tab"&&!e.shiftKey){ e.preventDefault(); ta.setRangeText("  ",ta.selectionStart,ta.selectionEnd,"end"); }
+  });
+}
+
+/* ===== Simulator ===== */
+const OPS={"<":(a,b)=>a<b,"<=":(a,b)=>a<=b,">":(a,b)=>a>b,">=":(a,b)=>a>=b};
+const UPD={"i++":[i=>i+1,"i = i + 1"],"i--":[i=>i-1,"i = i - 1"],"i += 2":[i=>i+2,"i = i + 2"],"i -= 2":[i=>i-2,"i = i - 2"]};
+const forText=p=>`for (let i = ${p.start}; i ${p.op} ${p.end}; ${p.upd}) {`;
+
+function buildFor(p){
+  const steps=[],out=[],path=[],st={putaran:0}; let fail=false;
+  const MAX=p.custom?12:50;
+  const emit=o=>{ if(o.out!=null) out.push(o.out); steps.push(Object.assign({phase:"body"},o,{vars:Object.assign({},st),out:out.slice(),tile:path.length-1,fail})); };
+  if(p.pre) p.pre(st,emit);
+  st.i=p.start; path.push(st.i);
+  emit({line:p.forIdx,part:"init",phase:"init",chip:`i = ${p.start}`,note:`Variabel <code>i</code> dibuat dengan nilai <b>${p.start}</b>. Bagian ini hanya dijalankan <b>sekali</b>.`});
+  const cond=OPS[p.op],[uf,ut]=UPD[p.upd]; let inf=false;
+  for(;;){
+    const ok=cond(st.i,p.end); if(!ok) fail=true;
+    emit({line:p.forIdx,part:"cond",phase:"cond",chip:`${st.i} ${p.op} ${p.end} → ${ok}`,
+      note: ok?`<code>${st.i} ${esc(p.op)} ${p.end}</code> hasilnya <b class="yes">true</b>. Sama seperti <code>if</code>: kalau true, isi blok dijalankan.`
+              :`<code>${st.i} ${esc(p.op)} ${p.end}</code> hasilnya <b class="no">false</b>. Loop berhenti, program lanjut ke baris setelah <code>}</code>.`});
+    if(!ok) break;
+    if(st.putaran>=MAX){inf=true; emit({line:p.forIdx,part:"cond",phase:"warn",note:`<b>Dihentikan paksa setelah ${MAX} putaran.</b> Kondisi <code>i ${esc(p.op)} ${p.end}</code> tidak akan pernah false karena <code>${esc(p.upd)}</code> membuat i menjauh dari batas. Ini disebut <b>infinite loop</b> (loop abadi).`}); break;}
+    st.putaran++;
+    p.body(st,emit);
+    const old=st.i; st.i=uf(st.i); path.push(st.i);
+    emit({line:p.forIdx,part:"upd",phase:"upd",chip:`i: ${old} → ${st.i}`,note:`<code>${esc(p.upd)}</code> artinya <code>${ut}</code>. Nilai i berubah dari ${old} menjadi <b>${st.i}</b>. Selanjutnya kembali cek kondisi.`});
+  }
+  if(!inf&&p.post) p.post(st,emit);
+  if(!inf) emit({line:-1,phase:"done",note:`<b>Program selesai.</b> Isi loop dijalankan <b>${st.putaran}</b> kali. Nilai akhir i = ${st.i}, yaitu nilai yang membuat kondisi false.`});
+  return {steps,path,inf};
+}
+
+function buildIf(){
+  const steps=[],out=[],st={};
+  const emit=o=>{ if(o.out!=null) out.push(o.out); steps.push(Object.assign({phase:"body"},o,{vars:Object.assign({},st),out:out.slice()})); };
+  st.jam=6; emit({line:0,phase:"pre",chip:"jam = 6",note:"Variabel <code>jam</code> dibuat dengan nilai 6 (jam 6 pagi)."});
+  emit({line:1,phase:"cond",chip:"6 < 7 → true",note:"Satpam mengecek: <code>6 &lt; 7</code> hasilnya <b class='yes'>true</b>, jadi isi blok if dijalankan."});
+  emit({line:2,out:"Silakan masuk",note:"Isi blok if: cetak <code>Silakan masuk</code>."});
+  emit({line:4,phase:"end",out:"Gerbang ditutup",note:"<b>if tidak kembali ke atas.</b> Setelah isi blok selesai, program langsung lanjut ke bawah. Kondisi hanya dicek <b>satu kali</b>."});
+  emit({line:-1,phase:"done",note:"<b>Program selesai.</b> Satpam hanya mengecek satu kali. Bandingkan dengan simulasi B, di mana guru mengulang pekerjaannya untuk setiap siswa."});
+  return {steps,path:[],inf:false};
+}
+
+const FLOW=`<svg class="flow" viewBox="0 0 460 170" role="img" aria-label="Diagram alur for">
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#8c959f"/></marker></defs>
+<path class="edge" d="M120 44 L158 44" marker-end="url(#ar)"/><path class="edge" d="M270 44 L338 44" marker-end="url(#ar)"/>
+<path class="edge" d="M395 68 L395 108" marker-end="url(#ar)"/><path class="edge" d="M340 134 L240 134 L240 70" marker-end="url(#ar)"/>
+<path class="edge" d="M180 68 L180 90 L65 90 L65 108" marker-end="url(#ar)"/>
+<text class="lb" x="285" y="36" fill="#1a7f37">true</text><text class="lb" x="90" y="84" fill="#cf222e">false</text>
+<g class="node" data-node="init"><rect x="10" y="20" width="110" height="48" rx="6"/><text x="65" y="41">1. Inisialisasi</text><text class="sub fi" x="65" y="57"></text></g>
+<g class="node" data-node="cond"><rect x="160" y="20" width="110" height="48" rx="6"/><text x="215" y="41">2. Cek kondisi</text><text class="sub fc" x="215" y="57"></text></g>
+<g class="node" data-node="body"><rect x="340" y="20" width="110" height="48" rx="6"/><text x="395" y="41">3. Isi loop</text><text class="sub" x="395" y="57">{ … }</text></g>
+<g class="node" data-node="upd"><rect x="340" y="110" width="110" height="48" rx="6"/><text x="395" y="131">4. Update</text><text class="sub fu" x="395" y="147"></text></g>
+<g class="node" data-node="end"><rect x="10" y="110" width="110" height="48" rx="6"/><text x="65" y="131">Keluar loop</text><text class="sub" x="65" y="147">lanjut ke bawah</text></g>
+</svg>`;
+const NODE={init:"init",cond:"cond",body:"body",upd:"upd",end:"end",done:"end",warn:"cond"};
+const PHN={pre:"Langkah biasa",init:"1. Inisialisasi",cond:"2. Cek kondisi",body:"3. Isi loop",upd:"4. Update",end:"Setelah loop",done:"Selesai",warn:"Peringatan"};
+
+/* ===== Adegan sehari-hari (bergerak mengikuti simulasi) ===== */
+const SCENES={
+  gate(host){
+    host.innerHTML=`<div class="clock">Jam di pos satpam: <b>06.00</b></div>
+      <div class="gate"><span class="stud em">🧑‍🎓</span><div class="sign">jam &lt; 7 ?</div><div class="post"></div><div class="door"></div><span class="school em">🏫</span></div>
+      <div class="say"></div>`;
+    const stud=host.querySelector(".stud"),sign=host.querySelector(".sign"),door=host.querySelector(".door"),say=host.querySelector(".say");
+    const T=["Seorang siswa datang ke gerbang sekolah pukul 06.00.","Satpam mengecek: apakah sekarang sebelum jam 7? <b>Ya.</b>","Gerbang dibuka, siswa masuk.","Gerbang ditutup. Satpam <b>tidak mengecek lagi</b>.","Selesai: pengecekan hanya terjadi satu kali."];
+    return {update(s,k){
+      sign.classList.toggle("ok",k>=1);
+      door.classList.toggle("open",k===2);
+      stud.classList.toggle("in",k>=2);
+      say.innerHTML=T[Math.min(k,T.length-1)];
+    }};
+  },
+  row(host,cfg){
+    host.innerHTML=`<div class="kids">${Array.from({length:cfg.n},(_,j)=>`<div class="kid" data-j="${j+1}"><span class="ptr em">${cfg.ptr}</span><span class="em">${cfg.em}</span><span class="nm">No. ${j+1}</span><span class="bd">${cfg.mark}</span></div>`).join("")}</div><div class="say"></div>`;
+    const kids=[...host.querySelectorAll(".kid")],say=host.querySelector(".say");
+    return {update(s){
+      const i=s.vars.i, done=Math.min(s.out.length,cfg.n);
+      kids.forEach(el=>{const j=+el.dataset.j; el.classList.toggle("done",j<=done); el.classList.toggle("cur",j===i&&["cond","body","upd","init"].includes(s.phase));});
+      say.innerHTML=cfg.say(s);
+    }};
+  },
+  laps(host,cfg){
+    host.innerHTML=`<div class="laps">
+      <svg viewBox="0 0 180 130" aria-hidden="true"><ellipse cx="90" cy="65" rx="78" ry="56" fill="#dafbe1" stroke="#4ac26b" stroke-width="2"/><ellipse cx="90" cy="65" rx="52" ry="32" fill="#fff" stroke="#4ac26b" stroke-width="1.5"/>
+      <line x1="90" y1="9" x2="90" y2="33" stroke="#cf222e" stroke-width="3"/>
+      <g class="arm"><text x="90" y="28" font-size="20" text-anchor="middle" class="em">🏃</text></g></svg>
+      <div style="display:flex;flex-direction:column;gap:8px"><span class="lapnum">Putaran selesai: <span class="ln-n">0</span> / ${cfg.n}</span><div class="flags">${Array.from({length:cfg.n},(_,j)=>`<span class="flag">${j+1}</span>`).join("")}</div></div></div>
+      <div class="say"></div>`;
+    const arm=host.querySelector(".arm"),flags=[...host.querySelectorAll(".flag")],nn=host.querySelector(".ln-n"),say=host.querySelector(".say");
+    return {update(s){
+      const ran=s.vars.putaran||0;
+      arm.style.transform=`rotate(${ran*360}deg)`;
+      flags.forEach((f,j)=>f.classList.toggle("done",j<ran));
+      nn.textContent=ran;
+      say.innerHTML=cfg.say(s);
+    }};
+  },
+  rocket(host){
+    host.innerHTML=`<div class="rocket"><div class="pad"></div><span class="ship em">🚀</span><span class="count">–</span></div><div class="say"></div>`;
+    const ship=host.querySelector(".ship"),cnt=host.querySelector(".count"),say=host.querySelector(".say");
+    let last=null;
+    return {update(s){
+      const launched=s.out.includes("Meluncur!");
+      ship.classList.toggle("go",launched);
+      ship.classList.toggle("shake",!launched&&s.phase==="cond"&&s.vars.i<1);
+      const nums=s.out.filter(o=>o!=="Meluncur!");
+      const v=nums.length?nums[nums.length-1]:"–";
+      if(v!==last){ cnt.textContent=v; if(v!=="–") restart(cnt,"tick"); last=v; }
+      say.innerHTML=launched?"<b>Roket meluncur!</b> Hitung mundur selesai, baris di luar loop dijalankan.":
+        s.phase==="body"?`Petugas berteriak: <b>${s.vars.i}!</b>`:
+        s.phase==="cond"?(s.vars.i>=1?`Apakah ${s.vars.i} masih ≥ 1? Ya, lanjut hitung.`:`Angka sudah ${s.vars.i}, tidak ≥ 1 lagi. Hitungan berhenti.`):
+        s.phase==="upd"?"Angka dikurangi 1.":"Roket siap di landasan. Hitung mundur dimulai dari 5.";
+    }};
+  },
+  stairs(host,cfg){
+    const N=cfg.n, h=j=>14+j*11;
+    host.innerHTML=`<div class="stairs">${Array.from({length:N},(_,j)=>`<div class="st" data-j="${j+1}" style="height:${h(j+1)}px">${j+1}</div>`).join("")}<span class="walker em">🧒</span></div><div class="say"></div>`;
+    const sts=[...host.querySelectorAll(".st")],w=host.querySelector(".walker"),say=host.querySelector(".say");
+    return {update(s){
+      const printed=s.out.map(Number);
+      sts.forEach(el=>el.classList.toggle("hit",printed.includes(+el.dataset.j)));
+      const pos=printed.length?printed[printed.length-1]:0;
+      w.style.left=pos?`${(pos-0.5)/N*100}%`:"0%";
+      w.style.bottom=(pos?h(pos):0)+"px";
+      say.innerHTML=cfg.say(s);
+    }};
+  },
+  groups(host){
+    host.innerHTML=`<div class="small-lbl">Antrean siswa</div><div class="queue"></div>
+      <div class="groups"><div class="gbox even"><h4>Tim Genap</h4><div class="in ev"></div></div><div class="gbox odd"><h4>Tim Ganjil</h4><div class="in od"></div></div></div><div class="say"></div>`;
+    const q=host.querySelector(".queue"),ev=host.querySelector(".ev"),od=host.querySelector(".od"),say=host.querySelector(".say");
+    let lastLen=0;
+    return {update(s){
+      const placed=s.out.map(o=>({n:parseInt(o,10),even:o.includes("genap")}));
+      const chip=(n,cls)=>`<span class="chipkid ${cls}"><span class="em">🧒</span>${n}</span>`;
+      const grew=s.out.length>lastLen; lastLen=s.out.length;
+      const newest=grew?placed[placed.length-1]:null;
+      let qh=""; for(let n=1;n<=6;n++){ if(!placed.some(p=>p.n===n)) qh+=chip(n,n===s.vars.i?"cur":""); }
+      q.innerHTML=qh||`<span class="cap">Semua siswa sudah dapat tim.</span>`;
+      ev.innerHTML=placed.filter(p=>p.even).map(p=>chip(p.n,p===newest?"pop":"")).join("");
+      od.innerHTML=placed.filter(p=>!p.even).map(p=>chip(p.n,p===newest?"pop":"")).join("");
+      const i=s.vars.i;
+      say.innerHTML=s.phase==="body"&&s.line===1?`Guru melihat nomor ${i}: apakah ${i} habis dibagi 2?`:
+        s.phase==="body"?`Siswa nomor ${i} masuk <b>${i%2===0?"Tim Genap":"Tim Ganjil"}</b>.`:
+        s.phase==="cond"?(i<=6?`Masih ada siswa nomor ${i}? Ya.`:"Tidak ada siswa nomor 7. Pembagian selesai."):
+        s.phase==="upd"?"Panggil siswa berikutnya.":s.phase==="done"?"Semua siswa sudah dibagi ke dua tim.":"Guru olahraga mulai memanggil dari siswa nomor 1.";
+    }};
+  },
+  piggy(host){
+    host.innerHTML=`<div class="piggy"><div class="pig"><span class="em">🐷</span><span class="coin em">🪙</span></div><div style="display:flex;flex-direction:column;gap:2px"><span class="cap">Isi celengan</span><span class="sum">Rp0</span><span class="log"></span></div></div><div class="say"></div>`;
+    const coin=host.querySelector(".coin"),sum=host.querySelector(".sum"),log=host.querySelector(".log"),say=host.querySelector(".say");
+    return {update(s){
+      const t=s.vars.total;
+      sum.textContent=t===undefined?"Rp0":"Rp"+(t*1000).toLocaleString("id-ID");
+      if(s.phase==="body") restart(coin,"drop");
+      const days=[]; for(let d=1;d<=(s.vars.putaran||0);d++) days.push(`hari ${d}: +${d}.000`);
+      log.textContent=days.join(" · ");
+      say.innerHTML=s.phase==="body"?`Hari ke-${s.vars.i}: masukkan Rp${s.vars.i}.000 ke celengan.`:
+        s.phase==="pre"?"Celengan masih kosong (total = 0).":
+        s.phase==="end"||s.phase==="done"?`Setelah 4 hari, isi celengan Rp${((t||0)*1000).toLocaleString("id-ID")}.`:
+        s.phase==="cond"?(s.vars.i<=4?`Hari ke-${s.vars.i}, masih ≤ 4 hari? Ya.`:"Sudah lewat 4 hari. Berhenti menabung."):
+        s.phase==="init"?"Mulai dari hari ke-1.":"Ganti ke hari berikutnya.";
+    }};
+  }
+};
+
+function Sim(host,preset,onDone){
+  this.p=preset; this.host=host; this.onDone=onDone; this.k=0; this.timer=null;
+  const isIf=preset.type==="if";
+  host.innerHTML=`<div class="sim">
+    <div class="sim-head"><span>${esc(preset.title)}</span><span class="st">Jalankan sampai selesai</span></div>
+    ${preset.scene?`<div class="scene"></div>`:""}
+    ${preset.custom?`<div class="custom">
+      <label>mulai<input data-c="start" type="number" value="${preset.start}"></label>
+      <label>kondisi<select data-c="op">${["<","<=",">",">="].map(o=>`<option${o===preset.op?" selected":""}>${esc(o)}</option>`).join("")}</select></label>
+      <label>batas<input data-c="end" type="number" value="${preset.end}"></label>
+      <label>update<select data-c="upd">${["i++","i--","i += 2","i -= 2"].map(o=>`<option${o===preset.upd?" selected":""}>${o}</option>`).join("")}</select></label></div>`:""}
+    <div class="sim-body">
+      <div>
+        <div class="codep"></div>
+        <div class="ctrl">
+          <button class="btn" type="button" data-a="back">Mundur</button>
+          <button class="btn blue" type="button" data-a="step">Langkah</button>
+          <button class="btn" type="button" data-a="play">Putar</button>
+          <button class="btn" type="button" data-a="reset">Ulang</button>
+          <label class="speed">Cepat<input type="range" min="250" max="1800" step="50" value="1000" data-a="speed" aria-label="Kecepatan"></label>
+        </div>
+        <div class="stepinfo"><span class="sn"></span><div class="bar"><i></i></div></div>
+        <div class="note" aria-live="polite"></div>
+      </div>
+      <div>
+        ${isIf?"":FLOW}
+        <div class="vars"></div>
+        ${isIf?"":`<div><div class="small-lbl">Jejak nilai i</div><div class="track"></div></div>`}
+        <div class="console"></div>
+      </div>
+    </div>
+    <div class="tryit"></div></div>`;
+  const q=s=>host.querySelector(s);
+  this.el={code:q(".codep"),note:q(".note"),vars:q(".vars"),track:q(".track"),con:q(".console"),sn:q(".sn"),bar:q(".stepinfo i"),st:q(".sim-head .st"),
+    back:q('[data-a="back"]'),step:q('[data-a="step"]'),play:q('[data-a="play"]'),speed:q('[data-a="speed"]'),svg:q(".flow"),scene:q(".scene")};
+  q(".sim-body").addEventListener("click",e=>{const a=e.target.closest("[data-a]"); if(!a) return; const t=a.dataset.a;
+    if(t==="step"){this.stop();this.next();} else if(t==="back"){this.stop();if(this.k>0){this.k--;this.render(null);}}
+    else if(t==="play") this.toggle(); else if(t==="reset"){this.stop();this.k=0;this.render(null);} });
+  this.el.speed.addEventListener("input",()=>{ if(this.timer){this.stop();this.toggle();} });
+  if(this.el.scene) this.scene=SCENES[preset.scene](this.el.scene,preset.sceneCfg||{});
+  this.load();
+  this.tryit=new TryIt(q(".tryit"),this.plainCode(),preset.tryHint);
+  if(preset.custom) host.querySelectorAll("[data-c]").forEach(inp=>inp.addEventListener("change",()=>{
+    const g=k=>host.querySelector(`[data-c="${k}"]`).value, clamp=v=>{v=parseInt(v,10);return isNaN(v)?0:Math.max(-99,Math.min(99,v));};
+    this.p.start=clamp(g("start")); this.p.end=clamp(g("end")); this.p.op=g("op"); this.p.upd=g("upd"); this.load(); this.tryit.reset(this.plainCode()); }));
+}
+Sim.prototype.plainCode=function(){ const p=this.p; return p.lines.map(l=>l==="FOR"?forText(p):l).join("\n"); };
+Sim.prototype.load=function(){
+  const p=this.p; this.stop(); this.k=0;
+  this.data=p.type==="if"?buildIf(p):buildFor(p);
+  const forHTML=`<span class="t-kw">for</span> (<span class="part" data-part="init"><span class="t-kw">let</span> i = <span class="t-num">${p.start}</span></span>; <span class="part" data-part="cond">i ${esc(p.op)} <span class="t-num">${p.end}</span></span>; <span class="part" data-part="upd">${esc(p.upd)}</span>) {`;
+  this.el.code.innerHTML=p.lines.map((l,i)=>`<div class="ln"><span class="no">${i+1}</span><span>${l==="FOR"?forHTML:hl(l)}</span></div>`).join("");
+  if(this.el.svg){ this.el.svg.querySelector(".fi").textContent=`let i = ${p.start}`; this.el.svg.querySelector(".fc").textContent=`i ${p.op} ${p.end}`; this.el.svg.querySelector(".fu").textContent=p.upd; }
+  this.render(null);
+};
+Sim.prototype.stop=function(){ if(this.timer){clearInterval(this.timer);this.timer=null;} this.el.play.textContent="Putar"; };
+Sim.prototype.toggle=function(){
+  if(this.timer){this.stop();return;}
+  if(this.k===this.data.steps.length-1){this.k=0;this.render(null);}
+  this.el.play.textContent="Jeda";
+  this.timer=setInterval(()=>this.next(),+this.el.speed.value);
+};
+Sim.prototype.next=function(){ if(this.k<this.data.steps.length-1){const p=this.k;this.k++;this.render(p);} };
+Sim.prototype.render=function(pk){
+  const d=this.data,s=d.steps[this.k],prev=pk!=null?d.steps[pk]:null,el=this.el,n=d.steps.length;
+  el.code.querySelectorAll(".ln").forEach((ln,i)=>{
+    const on=i===s.line; ln.classList.toggle("active",on); ln.dataset.ph=on?s.phase:"";
+    const c=ln.querySelector(".chip"); if(c) c.remove();
+    if(on&&s.chip){const sp=document.createElement("span");sp.className="chip";sp.textContent=s.chip;ln.appendChild(sp);}
+  });
+  el.code.querySelectorAll(".part").forEach(x=>x.classList.toggle("on",x.dataset.part===s.part));
+  el.note.dataset.ph=s.phase; el.note.innerHTML=`<span class="ph">${PHN[s.phase]||""}</span>${s.note}`;
+  if(el.svg) el.svg.querySelectorAll(".node").forEach(g=>{const on=g.dataset.node===NODE[s.phase]; if(!on) g.classList.remove("on"); else if(!g.classList.contains("on")) g.classList.add("on");});
+  const keys=this.p.varsShow||["i","putaran"];
+  el.vars.innerHTML=keys.map(key=>{const val=s.vars[key], ch=prev&&prev.vars[key]!==val&&val!==undefined;
+    return `<div class="var${ch?" bump":""}"><span class="k">${key}</span><span class="v">${val===undefined?"–":val}</span></div>`;}).join("");
+  if(el.track){
+    let h=""; d.path.forEach((val,i)=>{let c="tile"; if(i<s.tile)c+=" seen"; else if(i===s.tile){c+=" cur"; if(s.fail&&i===d.path.length-1&&!d.inf)c+=" fail";}
+      h+=`<div class="${c}">${i<=s.tile?val:""}</div>`;});
+    if(d.inf) h+=`<div class="tile">…</div>`;
+    el.track.innerHTML=h; const ct=el.track.querySelector(".cur"); if(ct) el.track.scrollLeft=ct.offsetLeft-el.track.clientWidth/2;
+  }
+  const grew=prev&&s.out.length>prev.out.length;
+  el.con.innerHTML=s.out.length?s.out.map((o,i)=>`<span class="o${grew&&i===s.out.length-1?" new":""}">${esc(o)}</span>`).join(""):`<span class="e">Console masih kosong</span>`;
+  el.con.scrollTop=el.con.scrollHeight;
+  if(this.scene) this.scene.update(s,this.k,d);
+  el.sn.textContent=`Langkah ${this.k+1}/${n}`; el.bar.style.width=((this.k+1)/n*100)+"%";
+  el.back.disabled=this.k===0; el.step.disabled=this.k===n-1;
+  if(this.k===n-1){ this.stop(); el.st.textContent="Selesai"; el.st.classList.add("ok"); if(this.onDone) this.onDone(); }
+};
+
+/* ===== Editor "Coba sendiri" ===== */
+function TryIt(host,initial,hint){
+  host.innerHTML=`<div class="tryit-head"><b>Coba sendiri</b><button class="linkbtn" type="button" data-t="toggle">Buka editor kode</button></div>
+    <div class="tryit-body" hidden style="display:flex;flex-direction:column;gap:10px">
+      <span class="cap">${hint||"Ubah angka atau isi kodenya, lalu tekan Jalankan."}</span>
+      <textarea class="ed" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Editor kode"></textarea>
+      <div class="ctrl"><button class="btn blue" type="button" data-t="run">Jalankan</button><button class="btn" type="button" data-t="reset">Kembalikan kode awal</button></div>
+      <div class="ed-msg" hidden></div>
+      <div class="ed-grid"><div><span class="small-lbl">Console</span><div class="console"><span class="e">Tekan Jalankan untuk melihat hasilnya</span></div></div>
+      <div><span class="small-lbl">Jejak nilai variabel perulangan</span><div class="track" style="flex-wrap:wrap; padding-top:6px"></div></div></div>
+    </div>`;
+  const q=s=>host.querySelector(s);
+  this.ta=q(".ed"); this.con=q(".console"); this.tr=q(".track"); this.msg=q(".ed-msg"); this.body=q(".tryit-body");
+  tabKey(this.ta);
+  this.reset(initial);
+  host.addEventListener("click",e=>{const b=e.target.closest("[data-t]"); if(!b) return;
+    if(b.dataset.t==="toggle"){ this.body.hidden=!this.body.hidden; b.textContent=this.body.hidden?"Buka editor kode":"Tutup editor"; }
+    else if(b.dataset.t==="run") this.run();
+    else if(b.dataset.t==="reset") this.reset(this.initial);
+  });
+}
+TryIt.prototype.reset=function(c){ this.initial=c; this.ta.value=c; this.ta.rows=Math.max(4,c.split("\n").length+1); };
+TryIt.prototype.run=async function(){
+  if(this.anim){ clearInterval(this.anim); this.anim=null; }
+  this.con.innerHTML=""; this.tr.innerHTML=""; this.msg.hidden=true;
+  const r=await runCode(this.ta.value);
+  const ev=r.ev||[]; let j=0, iter=0;
+  const finish=()=>{
+    this.msg.hidden=false;
+    if(!r.ok){ this.msg.className="ed-msg bad"; this.msg.textContent=errText(r.err); }
+    else { const outs=ev.filter(x=>x.t==="o").length; this.msg.className="ed-msg ok";
+      this.msg.textContent=iter?`Berhasil. Isi perulangan dijalankan ${iter} kali dan mencetak ${outs} baris.`:`Berhasil. Program mencetak ${outs} baris.`; }
+    if(!this.con.children.length) this.con.innerHTML=`<span class="e">Tidak ada output</span>`;
+  };
+  if(!ev.length){ finish(); return; }
+  if(ev.length>60){
+    const outs=ev.filter(x=>x.t==="o"), loops=ev.filter(x=>x.n);
+    iter=loops.length;
+    this.con.innerHTML=outs.map(x=>`<span class="o">${esc(x.s)}</span>`).join("");
+    this.tr.innerHTML=loops.slice(0,60).map(x=>`<div class="tile seen">${esc(x.n)} = ${esc(x.v)}</div>`).join("")+(loops.length>60?`<div class="tile">…</div>`:"");
+    if(!r.ok) iter=0;
+    finish(); return;
+  }
+  const speed=ev.length>30?90:220;
+  this.anim=setInterval(()=>{
+    const x=ev[j++];
+    if(x.t==="o"){ const s=document.createElement("span"); s.className="o new"; s.textContent=x.s; this.con.appendChild(s); this.con.scrollTop=this.con.scrollHeight; }
+    else if(x.n){ iter++; this.tr.querySelectorAll(".cur").forEach(t=>{t.classList.remove("cur");t.classList.add("seen");});
+      const t=document.createElement("div"); t.className="tile cur in"; t.textContent=`${x.n} = ${x.v}`; this.tr.appendChild(t); }
+    if(j>=ev.length){ clearInterval(this.anim); this.anim=null; this.tr.querySelectorAll(".cur").forEach(t=>{t.classList.remove("cur");t.classList.add("seen");}); finish(); }
+  },speed);
+};
+
+/* ===== Materi ===== */
+const SIMS={
+  if1:{type:"if",title:"Simulasi A: satpam di gerbang (if)",scene:"gate",varsShow:["jam"],start:0,op:"",end:0,upd:"",
+    lines:["let jam = 6;","if (jam < 7) {",'  console.log("Silakan masuk");',"}",'console.log("Gerbang ditutup");'],
+    tryHint:"Coba ganti nilai jam menjadi 8, lalu jalankan. Apa yang berubah? Kenapa?"},
+  absen:{title:"Simulasi B: guru mengabsen (for)",scene:"row",start:1,op:"<=",end:5,upd:"i++",forIdx:0,
+    sceneCfg:{n:5,em:"🧒",ptr:"👩‍🏫",mark:"Hadir",say:s=>s.phase==="init"?"Bu guru mulai dari siswa nomor 1.":s.phase==="cond"?(s.vars.i<=5?`Apakah nomor ${s.vars.i} masih ≤ 5? Ya, panggil.`:`Nomor ${s.vars.i} lebih dari 5. Semua sudah diabsen, berhenti.`):s.phase==="body"?`"Absen ${s.vars.i}!" Siswa nomor ${s.vars.i} menjawab <b>Hadir</b>.`:s.phase==="upd"?"Pindah ke siswa berikutnya.":"Semua siswa sudah diabsen. Pekerjaan yang sama diulang 5 kali."},
+    lines:["FOR",'  console.log("Absen " + i);',"}"],
+    body(st,emit){emit({line:1,out:"Absen "+st.i,note:`Isi loop dijalankan: cetak <code>Absen ${st.i}</code>.`})},
+    tryHint:"Coba ubah angka 5 menjadi 8 agar guru mengabsen 8 siswa."},
+  putaran:{title:"Simulasi: lari keliling lapangan 4 putaran",scene:"laps",start:1,op:"<=",end:4,upd:"i++",forIdx:0,
+    sceneCfg:{n:4,say:s=>s.phase==="init"?"Pelari bersiap. Hitungan dimulai dari putaran 1 (inisialisasi).":s.phase==="cond"?(s.vars.i<=4?`Sudah lebih dari 4 putaran? Belum (${s.vars.i} ≤ 4), lanjut lari.`:"Sudah 4 putaran. Berhenti dan istirahat."):s.phase==="body"?`Lari putaran ke-${s.vars.i} (isi loop).`:s.phase==="upd"?"Tambah hitungan putaran (update).":"Selesai lari 4 putaran."},
+    lines:["FOR",'  console.log("Lari putaran ke-" + i);',"}"],
+    body(st,emit){emit({line:1,out:"Lari putaran ke-"+st.i,note:`Isi loop dijalankan: cetak <code>Lari putaran ke-${st.i}</code>.`})},
+    tryHint:"Coba ubah supaya pelari berlari 6 putaran."},
+  mundur:{title:"Simulasi A: hitung mundur roket",scene:"rocket",start:5,op:">=",end:1,upd:"i--",forIdx:0,lines:["FOR","  console.log(i);","}",'console.log("Meluncur!");'],
+    body(st,emit){emit({line:1,out:String(st.i),note:`Cetak nilai i, yaitu <b>${st.i}</b>.`})},
+    post(st,emit){emit({line:3,phase:"end",out:"Meluncur!",note:"Loop selesai, baris setelah <code>}</code> dijalankan."})},
+    tryHint:"Coba mulai hitung mundur dari 10."},
+  lompat:{title:"Simulasi B: naik tangga dua-dua",scene:"stairs",start:2,op:"<=",end:10,upd:"i += 2",forIdx:0,lines:["FOR","  console.log(i);","}"],
+    sceneCfg:{n:10,say:s=>s.phase==="body"?`Kaki menginjak anak tangga nomor <b>${s.vars.i}</b>.`:s.phase==="upd"?"Lompat 2 anak tangga (i += 2).":s.phase==="cond"?(s.vars.i<=10?`Anak tangga ${s.vars.i} masih ada (≤ 10)? Ya.`:`Anak tangga ${s.vars.i} tidak ada. Sudah sampai atas.`):s.phase==="init"?"Mulai dari anak tangga nomor 2.":"Sampai di atas dengan 5 langkah, bukan 10."},
+    body(st,emit){emit({line:1,out:String(st.i),note:`Cetak nilai i, yaitu <b>${st.i}</b>.`})},
+    tryHint:"Coba ganti i += 2 menjadi i += 3. Anak tangga mana saja yang diinjak?"},
+  genap:{title:"Simulasi: membagi tim olahraga (for + if)",scene:"groups",start:1,op:"<=",end:6,upd:"i++",forIdx:0,
+    lines:["FOR","  if (i % 2 === 0) {",'    console.log(i + " genap");',"  } else {",'    console.log(i + " ganjil");',"  }","}"],
+    body(st,emit){const r=st.i%2,ok=r===0;
+      emit({line:1,chip:`${st.i} % 2 = ${r} → ${ok}`,note:`${st.i} dibagi 2 sisanya ${r}. Jadi <code>${st.i} % 2 === 0</code> bernilai <b class="${ok?"yes":"no"}">${ok}</b>.`});
+      if(ok) emit({line:2,out:st.i+" genap",note:`Kondisi if true, blok pertama jalan: cetak <code>${st.i} genap</code>.`});
+      else emit({line:4,out:st.i+" ganjil",note:`Kondisi if false, blok <code>else</code> jalan: cetak <code>${st.i} ganjil</code>.`});},
+    tryHint:"Coba ubah batasnya menjadi 10, atau ganti tulisan \"genap\" dan \"ganjil\" menjadi \"Tim A\" dan \"Tim B\"."},
+  total:{title:"Simulasi A: menabung di celengan",scene:"piggy",varsShow:["i","total","putaran"],start:1,op:"<=",end:4,upd:"i++",forIdx:1,
+    lines:["let total = 0;","FOR","  total = total + i;","}",'console.log("Total: " + total);'],
+    pre(st,emit){st.total=0;emit({line:0,phase:"pre",chip:"total = 0",note:"Sebelum loop, siapkan <code>total</code> berisi 0 (celengan kosong)."})},
+    body(st,emit){const o=st.total;st.total=o+st.i;emit({line:2,chip:`${o} + ${st.i} = ${st.total}`,note:`total = ${o} + ${st.i} = <b>${st.total}</b>.`})},
+    post(st,emit){emit({line:4,phase:"end",out:"Total: "+st.total,note:`Hasil akhir 1 + 2 + 3 + 4 = ${st.total}.`})},
+    tryHint:"Coba ubah supaya menabung selama 7 hari. Berapa totalnya?"},
+  bebas:{title:"Simulasi B: atur sendiri",custom:true,start:5,op:">",end:0,upd:"i++",forIdx:0,lines:["FOR","  console.log(i);","}"],
+    body(st,emit){emit({line:1,out:String(st.i),note:`Cetak nilai i, yaitu <b>${st.i}</b>.`})},
+    tryHint:"Di editor ini kamu boleh menulis loop yang tidak berhenti. Program akan otomatis dihentikan."}
+};
+
+const BAB=[
+ {judul:"Dari if ke for",sims:["if1","absen"],
+  isi:()=>`
+  <p>Di materi sebelumnya kamu belajar <code>if</code>: program mengecek sebuah kondisi, lalu menjalankan isi blok kalau kondisinya <b>true</b>. Pengecekannya hanya terjadi <b>satu kali</b>.</p>
+  <div class="box life"><b>Contoh sehari-hari</b>
+    <b>Satpam di gerbang sekolah</b> mengecek jam satu kali: kalau belum jam 7, siswa boleh masuk. Selesai. Itu seperti <code>if</code>.<br>
+    <b>Guru yang mengabsen</b> memanggil siswa nomor 1, lalu nomor 2, nomor 3, dan seterusnya sampai nomor terakhir. Pekerjaan yang sama diulang untuk setiap siswa. Itu seperti <code>for</code>.</div>
+  <p>Kalau ditulis tanpa perulangan, mengabsen 5 siswa membutuhkan 5 baris perintah:</p>
+  <div class="two">
+    <div><span class="cap">Tanpa perulangan</span>${code('console.log("Absen 1");\nconsole.log("Absen 2");\nconsole.log("Absen 3");\nconsole.log("Absen 4");\nconsole.log("Absen 5");')}</div>
+    <div><span class="cap">Dengan for</span>${code('for (let i = 1; i <= 5; i++) {\n  console.log("Absen " + i);\n}')}<span class="cap">Kalau siswanya 40, cukup ganti 5 menjadi 40.</span></div>
+  </div>
+  <div class="box tip"><b>Cara mudah mengingat:</b> <code>for</code> itu seperti <code>if</code> yang, setelah isinya selesai, kembali lagi ke atas untuk mengecek kondisi. Begitu terus sampai kondisinya <b>false</b>.</div>
+  <p>Jalankan kedua simulasi di bawah sampai selesai. Setelah itu, buka <b>Coba sendiri</b> di bawah simulasi dan ubah kodenya.</p>
+  <div data-sim="if1"></div><div data-sim="absen"></div>`,
+  kuis:[
+   {q:"Jika kondisi if bernilai true, berapa kali isi blok if dijalankan?",o:["1 kali","2 kali","Terus-menerus sampai false","Tidak dijalankan"],a:0,e:"if hanya mengecek kondisi sekali, lalu program lanjut ke bawah."},
+   {q:"Apa perbedaan utama for dibanding if?",o:["for tidak memakai kondisi","for mengecek kondisi berulang kali","for hanya bisa mencetak angka","for selalu berjalan 10 kali"],a:1,e:"for kembali mengecek kondisi setelah isi selesai, sampai kondisinya false."},
+   {q:"Kegiatan sehari-hari mana yang paling mirip dengan for?",o:["Satpam mengecek jam sekali di pagi hari","Guru mengabsen siswa satu per satu","Membuka pintu satu kali","Menyalakan lampu"],a:1,e:"Mengabsen adalah pekerjaan yang sama yang diulang untuk setiap siswa."},
+   {q:"Apa output kode ini?",c:"for (let i = 1; i <= 3; i++) {\n  console.log(i);\n}",o:["1","1 2 3","1 2 3 4","3"],a:1,e:"i bernilai 1, 2, 3. Saat i = 4, kondisi 4 <= 3 false."},
+   {type:"kode",q:"Ubah kode di bawah agar mencetak Absen 1 sampai Absen 3 saja.",start:'for (let i = 1; i <= 5; i++) {\n  console.log("Absen " + i);\n}',expect:["Absen 1","Absen 2","Absen 3"],e:"Cukup ganti batasnya menjadi 3: for (let i = 1; i <= 3; i++)."}
+  ]},
+ {judul:"Empat bagian for",sims:["putaran"],
+  isi:()=>`
+  <p>Di dalam tanda kurung <code>for ( )</code> ada tiga bagian yang dipisah titik koma <code>;</code>, ditambah isi loop di dalam kurung kurawal <code>{ }</code>.</p>
+  <div class="box life"><b>Contoh sehari-hari: lari keliling lapangan</b>Pak guru olahraga berkata: "Lari keliling lapangan 4 putaran!" Tanpa sadar, kamu menjalankan keempat bagian <code>for</code>:</div>
+  <div class="tw"><table class="map"><thead><tr><th>Di lapangan</th><th>Di kode</th><th>Bagian</th></tr></thead><tbody>
+    <tr><td>Mulai menghitung dari putaran 1</td><td><code>let i = 1</code></td><td style="color:var(--c-init)">1. Inisialisasi</td></tr>
+    <tr><td>Sebelum lari, cek: sudah lebih dari 4 putaran belum?</td><td><code>i &lt;= 4</code></td><td style="color:var(--c-cond)">2. Kondisi</td></tr>
+    <tr><td>Lari satu putaran</td><td><code>{ … }</code></td><td style="color:var(--c-body)">3. Isi loop</td></tr>
+    <tr><td>Tambah hitungan putaran di kepala</td><td><code>i++</code></td><td style="color:var(--c-upd)">4. Update</td></tr>
+  </tbody></table></div>
+  <div class="big-for" id="anat">for (<span class="p pi" data-o="0">let i = 1</span>; <span class="p pc" data-o="1">i &lt;= 4</span>; <span class="p pu" data-o="3">i++</span>) { <span class="p pb" data-o="2">console.log(…)</span> }</div>
+  <div class="parts">
+    <div style="border-color:var(--c-init)"><b>1. Inisialisasi</b>Membuat penghitung. Hanya sekali di awal.</div>
+    <div style="border-color:var(--c-cond)"><b>2. Kondisi</b>Dicek setiap putaran, sama seperti kondisi if.</div>
+    <div style="border-color:var(--c-body)"><b>3. Isi loop</b>Perintah yang diulang.</div>
+    <div style="border-color:var(--c-upd)"><b>4. Update</b>Mengubah penghitung. <code>i++</code> = <code>i = i + 1</code>.</div>
+  </div>
+  <div class="box"><b>Urutan jalannya:</b> 1 → 2 → 3 → 4 → 2 → 3 → 4 → 2 … sampai bagian 2 bernilai false. <button class="linkbtn" type="button" id="anatplay">Lihat animasinya</button></div>
+  <div data-sim="putaran"></div>`,
+  init(){
+    const b=$("anatplay"); if(!b) return; let t=null;
+    b.onclick=()=>{ if(t) return; const seq=[0,1,2,3,1,2,3,1]; let j=0; const ps=document.querySelectorAll("#anat .p");
+      t=setInterval(()=>{ ps.forEach(p=>p.classList.toggle("lit",+p.dataset.o===seq[j])); j++; if(j>seq.length){clearInterval(t);t=null;ps.forEach(p=>p.classList.remove("lit"));} },700); };
+  },
+  kuis:[
+   {q:"Bagian mana yang hanya dijalankan satu kali?",c:"for (let i = 1; i <= 4; i++) { … }",o:["let i = 1","i <= 4","i++","Isi di dalam { }"],a:0,e:"Inisialisasi hanya di awal. Kondisi, isi, dan update berulang."},
+   {q:"i++ artinya sama dengan …",o:["i = i - 1","i = i + 1","i = 1","i = i + 2"],a:1,e:"++ menambah nilai variabel sebanyak 1."},
+   {q:"Tanda apa yang memisahkan tiga bagian di dalam kurung for?",o:["Koma ,","Titik dua :","Titik koma ;","Spasi"],a:2,e:"Formatnya for (inisialisasi; kondisi; update)."},
+   {q:"Pada contoh lari keliling lapangan, \"lari satu putaran\" sama dengan bagian …",o:["Inisialisasi","Kondisi","Isi loop","Update"],a:2,e:"Kegiatan yang diulang-ulang adalah isi loop."},
+   {q:"Apa output kode ini?",c:"for (let i = 0; i < 3; i++) {\n  console.log(i);\n}",o:["0 1 2","1 2 3","0 1 2 3","1 2"],a:0,e:"i mulai dari 0. Saat i = 3, kondisi 3 < 3 false."},
+   {type:"kode",q:"Lengkapi kode (ganti tanda ...) agar mencetak Push up ke-1 sampai Push up ke-5.",start:'for (let i = 1; i <= ...; i++) {\n  console.log("Push up ke-" + i);\n}',expect:["Push up ke-1","Push up ke-2","Push up ke-3","Push up ke-4","Push up ke-5"],e:"Ganti ... dengan 5: for (let i = 1; i <= 5; i++)."}
+  ]},
+ {judul:"Mundur dan melompat",sims:["mundur","lompat"],
+  isi:()=>`
+  <p>Update tidak harus <code>i++</code>. Kamu bisa menghitung mundur atau melompat beberapa angka sekaligus.</p>
+  <div class="box life"><b>Contoh sehari-hari</b>
+    <b>Hitung mundur peluncuran roket:</b> 5, 4, 3, 2, 1, meluncur! Angkanya <b>berkurang</b> 1 setiap kali, jadi updatenya <code>i--</code>.<br>
+    <b>Naik tangga dua-dua:</b> kalau buru-buru, kamu menginjak anak tangga 2, 4, 6, 8, 10. Angkanya <b>bertambah 2</b>, jadi updatenya <code>i += 2</code>.</div>
+  <ul>
+    <li><code>i--</code> artinya <code>i = i - 1</code> (berkurang 1)</li>
+    <li><code>i += 2</code> artinya <code>i = i + 2</code> (bertambah 2)</li>
+    <li><code>i -= 3</code> artinya <code>i = i - 3</code> (berkurang 3)</li>
+  </ul>
+  <div class="box tip"><b>Perhatikan kondisinya.</b> Kalau menghitung mundur, kondisinya biasanya memakai <code>&gt;</code> atau <code>&gt;=</code>, karena i makin lama makin kecil.</div>
+  <div data-sim="mundur"></div><div data-sim="lompat"></div>`,
+  kuis:[
+   {q:"Kode mana yang mencetak 10, 9, 8, … sampai 1?",o:["for (let i = 10; i <= 1; i--)","for (let i = 10; i >= 1; i--)","for (let i = 1; i <= 10; i++)","for (let i = 10; i >= 1; i++)"],a:1,e:"Mulai 10, berkurang 1, berhenti setelah i kurang dari 1."},
+   {q:"Berapa kali isi loop dijalankan?",c:"for (let i = 2; i <= 10; i += 2) { … }",o:["4 kali","5 kali","6 kali","10 kali"],a:1,e:"i bernilai 2, 4, 6, 8, 10. Totalnya 5 kali."},
+   {q:"Apa output kode ini?",c:"for (let i = 10; i > 6; i -= 2) {\n  console.log(i);\n}",o:["10 8 6","10 8","8 6","10 9 8 7"],a:1,e:"10 > 6 true, 8 > 6 true, 6 > 6 false."},
+   {q:"i -= 3 artinya …",o:["i = 3","i = i + 3","i = i - 3","i = i * 3"],a:2,e:"-= mengurangi nilai variabel."},
+   {type:"kode",q:"Lengkapi kondisi dan update agar mencetak 10, 8, 6, 4, 2 (satu angka per baris).",start:"for (let i = 10; ; ) {\n  console.log(i);\n}",expect:["10","8","6","4","2"],e:"Contoh jawaban: for (let i = 10; i >= 2; i -= 2)."}
+  ]},
+ {judul:"for dan if bersama",sims:["genap"],
+  isi:()=>`
+  <p>Di dalam isi loop kamu boleh menulis <code>if</code>. Artinya, setiap putaran program akan mengambil keputusan sendiri.</p>
+  <div class="box life"><b>Contoh sehari-hari: membagi tim olahraga</b>Guru memanggil siswa satu per satu (itu <code>for</code>). Untuk setiap siswa, guru memutuskan: kalau nomor absennya genap, masuk Tim Genap, selain itu masuk Tim Ganjil (itu <code>if</code> dan <code>else</code>).</div>
+  <p>Untuk mengetahui genap atau ganjil, kita memakai operator <code>%</code> (modulus), yaitu <b>sisa hasil bagi</b>:</p>
+  <ul><li><code>4 % 2</code> = 0, karena 4 dibagi 2 sisanya 0 (genap)</li><li><code>5 % 2</code> = 1, karena 5 dibagi 2 sisanya 1 (ganjil)</li></ul>
+  ${code('for (let i = 1; i <= 6; i++) {\n  if (i % 2 === 0) {\n    console.log(i + " genap");\n  } else {\n    console.log(i + " ganjil");\n  }\n}')}
+  <div class="box tip">Ada <b>dua</b> pengecekan di sini: kondisi <code>for</code> menentukan apakah loop lanjut, sedangkan kondisi <code>if</code> menentukan apa yang dicetak di putaran itu.</div>
+  <div data-sim="genap"></div>`,
+  kuis:[
+   {q:"Berapa hasil 7 % 2?",o:["0","1","3","3.5"],a:1,e:"7 dibagi 2 = 3 sisa 1."},
+   {q:"Apa output kode ini?",c:"for (let i = 1; i <= 5; i++) {\n  if (i > 3) {\n    console.log(i);\n  }\n}",o:["1 2 3","4 5","3 4 5","1 2 3 4 5"],a:1,e:"Loop berputar 5 kali, tapi if hanya mencetak saat i lebih dari 3."},
+   {q:"Apa output kode ini?",c:"for (let i = 1; i <= 6; i++) {\n  if (i % 3 === 0) {\n    console.log(i);\n  }\n}",o:["3","3 6","1 2 4 5","6"],a:1,e:"Hanya 3 dan 6 yang habis dibagi 3."},
+   {q:"Pada kode for 1 sampai 6 di atas, berapa kali kondisi if dicek?",o:["1 kali","2 kali","6 kali","7 kali"],a:2,e:"if ada di dalam loop, jadi dicek di setiap putaran: 6 kali."},
+   {type:"kode",q:"Lengkapi kondisi if agar hanya nilai 75 ke atas yang dicetak. Output yang benar: 80 lulus, lalu 90 lulus.",start:'for (let nilai = 60; nilai <= 90; nilai += 10) {\n  if ( ) {\n    console.log(nilai + " lulus");\n  }\n}',expect:["80 lulus","90 lulus"],e:"Kondisinya: if (nilai >= 75). Nama variabel tidak harus i."}
+  ]},
+ {judul:"Menjumlahkan dan loop abadi",sims:["total","bebas"],
+  isi:()=>`
+  <p>Loop sering dipakai untuk mengumpulkan hasil. Caranya: siapkan variabel <b>di luar</b> loop, lalu tambahkan nilainya di setiap putaran.</p>
+  <div class="box life"><b>Contoh sehari-hari: menabung di celengan</b>Hari ke-1 kamu memasukkan Rp1.000, hari ke-2 Rp2.000, hari ke-3 Rp3.000, hari ke-4 Rp4.000. Celengannya (<code>total</code>) disiapkan sebelum mulai menabung, lalu isinya terus bertambah setiap hari.</div>
+  <div data-sim="total"></div>
+  <div class="box tip"><b>Kenapa total ditulis di luar loop?</b> Kalau <code>let total = 0</code> ditulis di dalam loop, celengannya dikosongkan lagi setiap hari.</div>
+  <h2>Hati-hati dengan loop abadi</h2>
+  <div class="box life"><b>Contoh sehari-hari</b>Bayangkan guru berkata "lari terus sampai hitunganmu jadi 0", padahal hitungan putaranmu terus naik 5, 6, 7, … Angka 0 tidak akan pernah tercapai, jadi kamu tidak akan pernah berhenti berlari.</div>
+  ${code('for (let i = 5; i > 0; i++) {\n  console.log(i);\n}')}
+  <p>Di sini i mulai dari 5 lalu terus bertambah, jadi <code>i &gt; 0</code> selalu true. Loop seperti ini disebut <b>infinite loop</b>. Coba jalankan di Simulasi B, lalu ubah update menjadi <code>i--</code> dan bandingkan.</p>
+  <div data-sim="bebas"></div>`,
+  kuis:[
+   {q:"Berapa nilai total di akhir?",c:"let total = 0;\nfor (let i = 1; i <= 3; i++) {\n  total = total + i;\n}",o:["3","5","6","0"],a:2,e:"0 + 1 + 2 + 3 = 6."},
+   {q:"Apa yang terjadi pada kode ini?",c:"for (let i = 5; i > 0; i++) {\n  console.log(i);\n}",o:["Cetak 5 4 3 2 1","Tidak mencetak apa pun","Tidak pernah berhenti","Cetak 5 saja"],a:2,e:"i terus bertambah sehingga i > 0 selalu true."},
+   {q:"Kenapa let total = 0 ditulis sebelum loop?",o:["Supaya lebih cepat","Supaya nilainya tidak kembali ke 0 setiap putaran","Karena for tidak boleh berisi let","Tidak ada alasannya"],a:1,e:"Variabel di luar loop menyimpan hasil dari semua putaran, seperti celengan yang tidak dikosongkan."},
+   {q:"Berapa nilai total di akhir?",c:"let total = 0;\nfor (let i = 1; i <= 5; i++) {\n  total = total + 2;\n}",o:["5","7","10","15"],a:2,e:"Loop berputar 5 kali, setiap kali menambah 2: 5 × 2 = 10."},
+   {type:"kode",q:"Hitung jumlah 1 + 2 + … + 10 memakai for, lalu cetak hasilnya dengan format: Total: 55",start:'let total = 0;\n\n// tulis perulangan for di sini\n\nconsole.log("Total: " + total);',expect:["Total: 55"],e:"Contoh jawaban: for (let i = 1; i <= 10; i++) { total = total + i; }"}
+  ]},
+ {judul:"Ujian akhir",sims:[],akhir:true,
+  isi:()=>`
+  <p>Ujian ini mencakup semua bab. Bacalah kode dengan teliti dan hitung langkahnya di kertas jika perlu. Soal menulis kode bisa kamu jalankan dulu sebelum dikirim.</p>
+  <div class="box">Nilai minimal lulus: <b>${CFG.KKM}</b>. Nilai ujian akan masuk ke rekap guru.</div>`,
+  kuis:[
+   {q:"Berapa kali isi loop dijalankan?",c:"for (let i = 3; i <= 7; i++) { … }",o:["4 kali","5 kali","7 kali","3 kali"],a:1,e:"i = 3, 4, 5, 6, 7."},
+   {q:"Apa output kode ini?",c:"for (let i = 1; i <= 9; i += 3) {\n  console.log(i);\n}",o:["1 3 6 9","1 4 7","3 6 9","1 4 7 10"],a:1,e:"1, 4, 7. Saat i = 10, kondisi false."},
+   {q:"Berapa nilai x di akhir?",c:"let x = 0;\nfor (let i = 1; i <= 4; i++) {\n  if (i % 2 === 0) {\n    x = x + i;\n  }\n}",o:["10","4","6","2"],a:2,e:"Hanya i genap (2 dan 4) yang dijumlahkan: 2 + 4 = 6."},
+   {q:"Berapa kali isi loop dijalankan?",c:"for (let i = 10; i < 5; i++) { … }",o:["0 kali","5 kali","10 kali","Tidak berhenti"],a:0,e:"Kondisi 10 < 5 sudah false sejak pengecekan pertama."},
+   {q:"Loop berhenti ketika i bernilai berapa?",c:"for (let i = 1; i <= 3; i++) { … }",o:["3","4","1","0"],a:1,e:"Setelah i = 3, update membuat i = 4 dan 4 <= 3 false."},
+   {q:"Kode mana yang menyebabkan loop abadi?",o:["for (let i = 1; i <= 5; i++)","for (let i = 5; i >= 1; i--)","for (let i = 1; i <= 5; i--)","for (let i = 0; i < 5; i += 2)"],a:2,e:"i mulai 1 lalu berkurang terus, jadi i <= 5 selalu true."},
+   {q:"Kode mana yang mencetak 20, 15, 10, 5?",o:["for (let i = 20; i >= 5; i -= 5)","for (let i = 20; i > 5; i -= 5)","for (let i = 5; i <= 20; i += 5)","for (let i = 20; i >= 5; i--)"],a:0,e:"Mulai 20, berkurang 5, berhenti setelah i kurang dari 5."},
+   {q:"Di mana perintah yang ingin diulang ditulis?",o:["Di dalam kurung ( )","Di dalam kurung kurawal { }","Sebelum kata for","Setelah tanda }"],a:1,e:"Isi loop ditulis di antara { dan }."},
+   {type:"kode",q:"Tulis for yang mencetak kelipatan 5 dari 5 sampai 25 (5, 10, 15, 20, 25), satu angka per baris.",start:"// tulis kodemu di sini\n",expect:["5","10","15","20","25"],e:"Contoh jawaban: for (let i = 5; i <= 25; i += 5) { console.log(i); }"},
+   {type:"kode",q:"Untuk nilai 60, 70, 80, 90, cetak \"lulus\" jika nilai ≥ 75, selain itu \"remedial\". Output: 60 remedial, 70 remedial, 80 lulus, 90 lulus.",start:'for (let nilai = 60; nilai <= 90; nilai += 10) {\n  // lengkapi dengan if dan else\n}',expect:["60 remedial","70 remedial","80 lulus","90 lulus"],e:"Di dalam loop: if (nilai >= 75) { console.log(nilai + \" lulus\"); } else { console.log(nilai + \" remedial\"); }"}
+  ]}
+];
+
+/* ===== State ===== */
+const KEY="kursus-for-v2";
+let S={siswa:null,bab:{},pending:[]};
+try{const raw=localStorage.getItem(KEY); if(raw) S=Object.assign(S,JSON.parse(raw));}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}};
+if(!Array.isArray(S.pending)) S.pending=[];
+try{ // nilai yang tertunda dari versi kursus sebelumnya
+  const old=JSON.parse(localStorage.getItem("kursus-for-v1")||"null");
+  if(old&&Array.isArray(old.pending)&&old.pending.length){ S.pending=S.pending.concat(old.pending); old.pending=[]; localStorage.setItem("kursus-for-v1",JSON.stringify(old)); save(); }
+}catch(e){}
+const B=n=>S.bab[n]||(S.bab[n]={sims:{},lulus:false,skor:null,percobaan:0});
+const unlocked=n=>n===1||B(n-1).lulus;
+let current=1;
+
+let lastSendErr="";
+async function kirim(row){
+  if(!db){ S.pending.push(row); save(); return "demo"; }
+  try{ const {error}=await db.from("nilai_kuis").insert(row); if(error) throw error; return "ok"; }
+  catch(e){ lastSendErr=String(e&&e.message||e); S.pending.push(row); save(); return "gagal"; }
+}
+let flushing=false, retryTimer=null;
+async function flush(){
+  if(flushing) return;
+  if(!db||!S.pending.length){ syncBadge(); return; }
+  flushing=true; syncBadge("kirim");
+  const rest=[];
+  for(const r of S.pending){
+    try{ const {error}=await db.from("nilai_kuis").insert(r); if(error){ rest.push(r); lastSendErr=error.message; } }
+    catch(e){ rest.push(r); lastSendErr=String(e&&e.message||e); }
+  }
+  S.pending=rest; save(); flushing=false; syncBadge();
+  clearTimeout(retryTimer);
+  if(S.pending.length) retryTimer=setTimeout(flush,60000);
+}
+function syncBadge(state){
+  const el=$("sync"); if(!el||!S.siswa) return;
+  const n=S.pending.length;
+  el.hidden=false;
+  if(state==="kirim"){ el.className="sync wait"; el.textContent=`Mengirim ${n} nilai ke guru…`; return; }
+  if(!db){ el.className="sync wait"; el.textContent=n?`${n} nilai menunggu (database belum diatur)`:""; el.hidden=!n; return; }
+  if(n){ el.className="sync bad"; el.innerHTML=`${n} nilai belum terkirim <button class="linkbtn" type="button" id="syncnow">Kirim ulang</button>`; $("syncnow").onclick=flush; el.title=lastSendErr; }
+  else { el.className="sync ok"; el.textContent="Semua nilai sudah terkirim ke guru"; }
+}
+
+/* ===== Tampilan ===== */
+function header(){
+  const done=BAB.filter((b,i)=>B(i+1).lulus).length;
+  $("prog").hidden=false; $("progtxt").textContent=`${done}/${BAB.length} bab lulus`; $("progbar").style.width=(done/BAB.length*100)+"%";
+  $("who").hidden=false;
+  $("who").innerHTML=`${esc(S.siswa.nama)} · ${esc(S.siswa.kelas)} · No. ${S.siswa.absen} <button class="linkbtn" id="ganti" type="button">Bukan kamu?</button>`;
+  $("ganti").onclick=()=>{ const b=$("ganti"); if(b.dataset.c){ S={siswa:null,bab:{},pending:S.pending}; save(); location.reload(); } else { b.dataset.c="1"; b.textContent="Klik lagi untuk keluar (progres di perangkat ini dihapus)"; } };
+}
+const LOCK=`<svg width="10" height="12" viewBox="0 0 10 12" aria-label="terkunci"><rect x="1" y="5" width="8" height="6.5" rx="1" fill="currentColor"/><path d="M3 5V3.5a2 2 0 0 1 4 0V5" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>`;
+function side(){
+  $("side").innerHTML=`<div class="lbl">Daftar bab</div>`+BAB.map((b,i)=>{
+    const n=i+1,s=B(n),ok=unlocked(n);
+    const cls=s.lulus?"done":ok?"open":"";
+    return `<button class="babbtn ${cls}" type="button" data-n="${n}" ${ok?"":"disabled"} aria-current="${n===current}"><span class="ic">${s.lulus?"✓":ok?n:LOCK}</span><span class="t">${n}. ${esc(b.judul)}</span>${s.skor!=null?`<span class="s">${s.skor}</span>`:""}</button>`;
+  }).join("");
+}
+$("side").addEventListener("click",e=>{const b=e.target.closest(".babbtn"); if(b&&!b.disabled) open(+b.dataset.n);});
+
+function open(n){
+  if(!unlocked(n)) return;
+  current=n;
+  const b=BAB[n-1];
+  $("main").innerHTML=`<span class="crumb">Bab ${n} dari ${BAB.length}</span><h1>${esc(b.judul)}</h1><div class="content">${b.isi()}</div><div id="quizwrap"></div>`;
+  $("main").querySelectorAll("[data-sim]").forEach(h=>{
+    const key=h.dataset.sim, p=Object.assign({},SIMS[key]);
+    new Sim(h,p,()=>{ const s=B(n); if(!s.sims[key]){ s.sims[key]=true; save(); renderQuiz(); } });
+    if(B(n).sims[key]){ const st=h.querySelector(".sim-head .st"); st.textContent="Sudah diselesaikan"; st.classList.add("ok"); }
+  });
+  if(b.init) b.init();
+  side(); renderQuiz();
+  window.scrollTo(0,0);
+}
+
+const isCodeOpt=o=>/[;(=+<>%]/.test(o)||/^[\d\s.]+$/.test(o);
+function renderQuiz(fresh){
+  const n=current,b=BAB[n-1],s=B(n),w=$("quizwrap");
+  const need=b.sims.filter(k=>!s.sims[k]);
+  const title=b.akhir?"Soal ujian":"Kuis bab "+n;
+  if(need.length){
+    w.innerHTML=`<div class="quiz"><div class="quiz-head"><h2>${title}</h2><span>Terkunci</span></div><div class="locked"><b>Selesaikan simulasi dulu untuk membuka kuis.</b><span>Belum selesai: ${need.map(k=>esc(SIMS[k].title)).join(", ")}</span></div></div>`;
+    return;
+  }
+  const info=s.percobaan?(fresh?`Percobaan ke-${s.percobaan+1} · nilai terbaik ${s.skor}`:`Sudah dikerjakan ${s.percobaan}× · nilai terbaik ${s.skor}`):`${b.kuis.length} soal · lulus minimal ${CFG.KKM}`;
+  w.innerHTML=`<div class="quiz"><div class="quiz-head"><h2>${title}</h2><span>${info}</span></div>
+    <form class="quiz-body" id="qform">${b.kuis.map((x,qi)=>x.type==="kode"?`
+      <fieldset class="q" data-qi="${qi}"><legend class="qt">${qi+1}. ${esc(x.q)}<span class="tagk">Tulis kode</span></legend>
+        <textarea class="ed" id="qk-${n}-${qi}" spellcheck="false" autocapitalize="off" rows="${Math.max(4,x.start.split("\n").length+1)}" aria-label="Jawaban kode soal ${qi+1}">${esc(x.start)}</textarea>
+        <div class="actions"><button class="btn" type="button" data-run="${qi}">Jalankan</button><span class="cap qk-st">Jalankan kodemu minimal sekali sebelum mengirim.</span></div>
+        <div class="console qk-out"><span class="e">Output akan muncul di sini</span></div>
+      </fieldset>`:`
+      <fieldset class="q" data-qi="${qi}"><legend class="qt">${qi+1}. ${esc(x.q)}</legend>${x.c?code(x.c):""}
+      <div class="opts">${x.o.map((o,oi)=>`<label class="opt"><input type="radio" name="q${qi}" value="${oi}" id="q${n}-${qi}-${oi}"><span>${isCodeOpt(o)?`<code>${esc(o)}</code>`:esc(o)}</span></label>`).join("")}</div></fieldset>`).join("")}
+      <div class="actions" id="qact"><button class="btn primary" type="submit" id="qsend" disabled>Kirim jawaban</button><span class="send" id="qleft"></span></div>
+    </form></div>`;
+  const f=$("qform"), ran=new Set();
+  f.querySelectorAll("textarea.ed").forEach(tabKey);
+  const upd=()=>{
+    const left=b.kuis.filter((x,qi)=>x.type==="kode"?!ran.has(qi):!f.querySelector(`input[name="q${qi}"]:checked`)).length;
+    $("qsend").disabled=left>0; $("qleft").textContent=left?`${left} soal belum dikerjakan`:"Semua soal sudah dikerjakan";
+  };
+  f.addEventListener("change",upd);
+  f.addEventListener("click",async e=>{
+    const btn=e.target.closest("[data-run]"); if(!btn||btn.disabled) return;
+    const qi=+btn.dataset.run, fs=f.querySelector(`fieldset[data-qi="${qi}"]`), out=fs.querySelector(".qk-out"), st=fs.querySelector(".qk-st");
+    btn.disabled=true; st.textContent="Menjalankan…";
+    const r=await runCode(fs.querySelector("textarea").value);
+    const outs=(r.ev||[]).filter(x=>x.t==="o").map(x=>x.s);
+    out.innerHTML=outs.length?outs.map(o=>`<span class="o new">${esc(o)}</span>`).join(""):`<span class="e">Tidak ada output</span>`;
+    st.textContent=r.ok?"Sudah dijalankan. Bandingkan output dengan yang diminta soal.":errText(r.err);
+    btn.disabled=false; ran.add(qi); upd();
+  });
+  upd();
+  f.addEventListener("submit",e=>{e.preventDefault(); submit(f);});
+  if(!fresh&&s.last&&Array.isArray(s.last.ans)&&s.last.ans.length===b.kuis.length) applyReview(f,b,s.last,false);
+}
+
+const norm=a=>a.map(x=>String(x).trim()).filter(x=>x!=="");
+async function submit(f){
+  const n=current,b=BAB[n-1],s=B(n);
+  $("qsend").disabled=true; $("qleft").textContent="Memeriksa jawaban…";
+  const ans=[], benarArr=[], kode={};
+  for(let qi=0;qi<b.kuis.length;qi++){
+    const x=b.kuis[qi];
+    if(x.type==="kode"){
+      const src=f.querySelector(`fieldset[data-qi="${qi}"] textarea`).value;
+      const r=await runCode(src);
+      const outs=norm((r.ev||[]).filter(e=>e.t==="o").map(e=>e.s));
+      const ok=r.ok&&/\bfor\s*\(/.test(src)&&outs.length===x.expect.length&&outs.every((o,i)=>o===x.expect[i]);
+      ans.push(src); benarArr.push(ok); kode[qi]={outs:outs.slice(0,50),ok:!!r.ok,err:r.err||null};
+    } else {
+      const v=+f.querySelector(`input[name="q${qi}"]:checked`).value; ans.push(v); benarArr.push(v===x.a);
+    }
+  }
+  const benar=benarArr.filter(Boolean).length;
+  const skor=Math.round(benar/b.kuis.length*100), lulus=skor>=CFG.KKM;
+  s.percobaan++; s.skor=Math.max(s.skor??0,skor); if(lulus) s.lulus=true;
+  const attempt={ans,benarArr,kode,skor,benar,lulus,waktu:Date.now(),ke:s.percobaan};
+  s.last=attempt; save();
+  applyReview(f,b,attempt,true);
+  header(); side();
+  const row={nama:S.siswa.nama,kelas:S.siswa.kelas,no_absen:S.siswa.absen,bab:n,judul_bab:b.judul,skor,benar,jumlah_soal:b.kuis.length,percobaan:s.percobaan,lulus,jawaban:ans};
+  const r=await kirim(row);
+  if(r==="ok") flush(); else { syncBadge(); clearTimeout(retryTimer); if(db) retryTimer=setTimeout(flush,60000); }
+  const el=$("sendst");
+  if(el) el.textContent= r==="ok"?"Nilai sudah terkirim ke guru.":
+    r==="demo"?"Database belum diatur di config.js, jadi nilai belum terkirim. Nilai ini disimpan dan akan dikirim otomatis setelah database diatur.":
+    "Nilai gagal terkirim, akan dikirim ulang otomatis saat halaman dibuka lagi. Penyebab: "+(/failed to fetch|network|load failed/i.test(lastSendErr)?"tidak ada koneksi internet atau alamat database salah.":lastSendErr);
+}
+
+/* Menampilkan hasil kuis (baru dikirim, atau hasil terakhir yang tersimpan) */
+function applyReview(f,b,a,justNow){
+  const n=current,s=B(n);
+  f.classList.add("review");
+  b.kuis.forEach((x,qi)=>{
+    const fs=f.querySelector(`fieldset[data-qi="${qi}"]`);
+    fs.querySelectorAll(".expl").forEach(e=>e.remove());
+    const ex=document.createElement("p"); ex.className="expl";
+    const ok=a.benarArr[qi];
+    if(x.type==="kode"){
+      const src=String(a.ans[qi]??""), k=a.kode[qi]||{outs:[],ok:true,err:null};
+      fs.querySelector("textarea").value=src;
+      const why=!/\bfor\s*\(/.test(src)?"Jawaban harus memakai perulangan for. ":!k.ok?errText(k.err)+" ":"";
+      fs.querySelector(".qk-out").innerHTML=k.outs.length?k.outs.map(o=>`<span class="o">${esc(o)}</span>`).join(""):`<span class="e">Tidak ada output</span>`;
+      ex.innerHTML=(ok?'<b class="yes">Benar.</b> Output sesuai. ':`<b class="no">Belum tepat.</b> ${esc(why)}Output yang diminta: <code>${esc(x.expect.join(" | "))}</code>. `)+esc(x.e);
+      fs.querySelector(".qk-st").textContent="";
+    } else {
+      fs.querySelectorAll("input").forEach((inp,oi)=>{
+        inp.checked=oi===a.ans[qi];
+        const lab=inp.closest(".opt"); lab.classList.remove("right","wrong");
+        if(oi===x.a) lab.classList.add("right"); else if(oi===a.ans[qi]) lab.classList.add("wrong");
+      });
+      ex.innerHTML=(ok?'<b class="yes">Benar.</b> ':'<b class="no">Salah.</b> ')+esc(x.e);
+    }
+    fs.appendChild(ex);
+  });
+  f.querySelectorAll("input,textarea,[data-run]").forEach(i=>i.disabled=true);
+  const last=n===BAB.length;
+  const tgl=new Date(a.waktu).toLocaleString("id-ID",{day:"numeric",month:"long",hour:"2-digit",minute:"2-digit"});
+  const pesan=a.lulus?(last?"Selamat, kamu menyelesaikan seluruh kursus.":"Kamu lulus bab ini, bab berikutnya sudah terbuka."):`Belum mencapai ${CFG.KKM}. Baca lagi pembahasan di atas, lalu coba lagi.`;
+  const lanjut=s.lulus&&!last?`<button class="btn primary" type="button" id="nextb">Lanjut ke Bab ${n+1}</button>`:s.lulus&&last?`<button class="btn primary" type="button" id="finb">Lihat ringkasan nilai</button>`:"";
+  const box=`<div class="result ${a.lulus?"pass":"fail"}" id="res">
+     <span class="cap">${justNow?"Hasil pengerjaan":"Hasil pengerjaan terakhir"} (percobaan ke-${a.ke||s.percobaan}, ${tgl})</span>
+     <span class="big">Nilai ${a.skor}</span>
+     <span>${a.benar} dari ${b.kuis.length} soal benar. ${pesan}${!justNow&&s.skor>a.skor?` Nilai terbaikmu di bab ini: ${s.skor}.`:""}</span>
+     ${justNow?`<span class="send" id="sendst">Mengirim nilai ke guru…</span>`:""}
+     <div class="actions">${lanjut}<button class="btn" type="button" id="retry">${a.lulus?"Kerjakan ulang":"Coba lagi"}</button></div></div>`;
+  const act=$("qact");
+  if(act) act.outerHTML=box; else { const old=$("res"); if(old) old.outerHTML=box; }
+  if(justNow) $("res").scrollIntoView({behavior:"smooth",block:"center"});
+  if($("nextb")) $("nextb").onclick=()=>open(n+1);
+  if($("finb")) $("finb").onclick=summary;
+  $("retry").onclick=()=>{renderQuiz(true); $("quizwrap").scrollIntoView({behavior:"smooth"});};
+}
+
+function summary(){
+  current=0; side();
+  const rows=BAB.map((b,i)=>{const s=B(i+1);return `<tr><td>${i+1}. ${esc(b.judul)}</td><td class="n">${s.skor??"–"}</td><td class="n">${s.percobaan}</td></tr>`}).join("");
+  $("main").innerHTML=`<span class="crumb">Kursus selesai</span><h1>Ringkasan nilai</h1><p>${esc(S.siswa.nama)}, kamu sudah menyelesaikan semua bab. Nilai di bawah adalah nilai terbaik tiap bab.</p>
+   <table class="sum"><thead><tr><th>Bab</th><th>Nilai</th><th>Percobaan</th></tr></thead><tbody>${rows}</tbody></table>
+   <p class="cap">Kamu masih bisa membuka bab mana pun dari daftar untuk mengulang materi.</p>`;
+}
+
+function boot(){
+  $("demo").hidden=!!db;
+  if(!S.siswa){ $("start").hidden=false; return; }
+  $("start").hidden=true; $("app").hidden=false; header();
+  let n=1; while(n<BAB.length&&B(n).lulus) n++;
+  open(n); flush();
+}
+$("startform").addEventListener("submit",e=>{
+  e.preventDefault();
+  const nama=$("f-nama").value.trim().replace(/\s+/g," "), kelas=$("f-kelas").value.trim().toUpperCase().replace(/\s+/g," "), absen=parseInt($("f-absen").value,10);
+  const err=$("starterr");
+  if(nama.length<2){err.hidden=false; err.textContent="Tulis nama lengkapmu."; return;}
+  if(!kelas){err.hidden=false; err.textContent="Tulis kelasmu."; return;}
+  if(!(absen>=1&&absen<=99)){err.hidden=false; err.textContent="Nomor absen harus antara 1 dan 99."; return;}
+  S.siswa={nama,kelas,absen}; save(); boot();
+});
+boot();
+})();
+</script>
+</body>
+</html>
