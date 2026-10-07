@@ -32,6 +32,10 @@ button{font:inherit}
 .prog .bar{flex:1; max-width:220px; height:8px; background:var(--soft); border:1px solid var(--line); border-radius:4px; overflow:hidden}
 .prog .bar i{display:block; height:100%; background:var(--ok); width:0; transition:width .4s}
 .who{font-size:.85rem; color:var(--muted)}
+.sync{font-size:.8rem; padding:2px 10px; border-radius:12px; border:1px solid var(--line)}
+.sync.ok{color:var(--ok); background:var(--ok-soft); border-color:#aceebb}
+.sync.bad{color:#82071e; background:var(--bad-soft); border-color:#ffcecb}
+.sync.wait{color:#7d4e00; background:var(--warn-soft); border-color:#eac54f}
 .linkbtn{background:none; border:0; color:var(--accent); cursor:pointer; padding:0; font-size:.85rem}
 
 .start{max-width:440px; margin:48px auto; padding-inline:16px; display:flex; flex-direction:column; gap:16px}
@@ -286,14 +290,15 @@ table.sum td.n{text-align:right; font-variant-numeric:tabular-nums}
 <div class="demo" id="demo" hidden>Mode uji coba: database belum diatur di <code>config.js</code>, jadi nilai belum dikirim ke guru.</div>
 
 <header class="topbar">
-  <span class="brand">Materi Kelas X</span>
+  <span class="brand">Kursus Perulangan For</span>
   <div class="prog" id="prog" hidden><span id="progtxt">0/6 bab</span><div class="bar"><i id="progbar"></i></div></div>
+  <span class="sync" id="sync" hidden></span>
   <span class="who" id="who" hidden></span>
 </header>
 
 <section class="start" id="start" hidden>
   <h1>Selamat datang</h1>
-  <p>Materi ini lanjutan dari materi sebelumnya yaitu<code>if</code>. Kerjakan bab secara berurutan. Bab berikutnya terbuka setelah kamu lulus kuis bab sebelumnya. Silahkan masukkan Nama, Kelas dan juga nomor urut kalian di bawah ini.</p>
+  <p>Kursus ini lanjutan dari materi percabangan <code>if</code>. Kerjakan bab secara berurutan. Bab berikutnya terbuka setelah kamu lulus kuis bab sebelumnya. Nilai kuis otomatis dikirim ke guru.</p>
   <form id="startform" style="display:flex; flex-direction:column; gap:16px">
     <div class="field"><label for="f-nama">Nama lengkap</label><input id="f-nama" required maxlength="80" autocomplete="name"></div>
     <div class="row2">
@@ -848,20 +853,43 @@ const KEY="kursus-for-v2";
 let S={siswa:null,bab:{},pending:[]};
 try{const raw=localStorage.getItem(KEY); if(raw) S=Object.assign(S,JSON.parse(raw));}catch(e){}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}};
+if(!Array.isArray(S.pending)) S.pending=[];
+try{ // nilai yang tertunda dari versi kursus sebelumnya
+  const old=JSON.parse(localStorage.getItem("kursus-for-v1")||"null");
+  if(old&&Array.isArray(old.pending)&&old.pending.length){ S.pending=S.pending.concat(old.pending); old.pending=[]; localStorage.setItem("kursus-for-v1",JSON.stringify(old)); save(); }
+}catch(e){}
 const B=n=>S.bab[n]||(S.bab[n]={sims:{},lulus:false,skor:null,percobaan:0});
 const unlocked=n=>n===1||B(n-1).lulus;
 let current=1;
 
+let lastSendErr="";
 async function kirim(row){
-  if(!db) return "demo";
+  if(!db){ S.pending.push(row); save(); return "demo"; }
   try{ const {error}=await db.from("nilai_kuis").insert(row); if(error) throw error; return "ok"; }
-  catch(e){ S.pending.push(row); save(); return "gagal"; }
+  catch(e){ lastSendErr=String(e&&e.message||e); S.pending.push(row); save(); return "gagal"; }
 }
+let flushing=false, retryTimer=null;
 async function flush(){
-  if(!db||!S.pending.length) return;
+  if(flushing) return;
+  if(!db||!S.pending.length){ syncBadge(); return; }
+  flushing=true; syncBadge("kirim");
   const rest=[];
-  for(const r of S.pending){ try{const {error}=await db.from("nilai_kuis").insert(r); if(error) rest.push(r);}catch(e){rest.push(r);} }
-  S.pending=rest; save();
+  for(const r of S.pending){
+    try{ const {error}=await db.from("nilai_kuis").insert(r); if(error){ rest.push(r); lastSendErr=error.message; } }
+    catch(e){ rest.push(r); lastSendErr=String(e&&e.message||e); }
+  }
+  S.pending=rest; save(); flushing=false; syncBadge();
+  clearTimeout(retryTimer);
+  if(S.pending.length) retryTimer=setTimeout(flush,60000);
+}
+function syncBadge(state){
+  const el=$("sync"); if(!el||!S.siswa) return;
+  const n=S.pending.length;
+  el.hidden=false;
+  if(state==="kirim"){ el.className="sync wait"; el.textContent=`Mengirim ${n} nilai ke guru…`; return; }
+  if(!db){ el.className="sync wait"; el.textContent=n?`${n} nilai menunggu (database belum diatur)`:""; el.hidden=!n; return; }
+  if(n){ el.className="sync bad"; el.innerHTML=`${n} nilai belum terkirim <button class="linkbtn" type="button" id="syncnow">Kirim ulang</button>`; $("syncnow").onclick=flush; el.title=lastSendErr; }
+  else { el.className="sync ok"; el.textContent="Semua nilai sudah terkirim ke guru"; }
 }
 
 /* ===== Tampilan ===== */
@@ -966,7 +994,11 @@ async function submit(f){
   header(); side();
   const row={nama:S.siswa.nama,kelas:S.siswa.kelas,no_absen:S.siswa.absen,bab:n,judul_bab:b.judul,skor,benar,jumlah_soal:b.kuis.length,percobaan:s.percobaan,lulus,jawaban:ans};
   const r=await kirim(row);
-  const el=$("sendst"); if(el) el.textContent= r==="ok"?"Nilai sudah terkirim ke guru.": r==="demo"?"Mode uji coba: nilai tidak dikirim.":"Nilai gagal terkirim (cek internet). Akan dikirim ulang otomatis saat halaman dibuka lagi.";
+  if(r==="ok") flush(); else { syncBadge(); clearTimeout(retryTimer); if(db) retryTimer=setTimeout(flush,60000); }
+  const el=$("sendst");
+  if(el) el.textContent= r==="ok"?"Nilai sudah terkirim ke guru.":
+    r==="demo"?"Database belum diatur di config.js, jadi nilai belum terkirim. Nilai ini disimpan dan akan dikirim otomatis setelah database diatur.":
+    "Nilai gagal terkirim, akan dikirim ulang otomatis saat halaman dibuka lagi. Penyebab: "+(/failed to fetch|network|load failed/i.test(lastSendErr)?"tidak ada koneksi internet atau alamat database salah.":lastSendErr);
 }
 
 /* Menampilkan hasil kuis (baru dikirim, atau hasil terakhir yang tersimpan) */
