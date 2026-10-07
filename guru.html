@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rekap Nilai Kursus For</title>
+<style>
+:root{
+  --bg:#fff; --soft:#f6f8fa; --ink:#1f2328; --muted:#59636e; --line:#d1d9e0; --accent:#0969da;
+  --ok:#1a7f37; --ok-soft:#dafbe1; --bad:#cf222e; --bad-soft:#ffebe9;
+  --sans:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); font-size:15px; line-height:1.5}
+h1{font-size:1.4rem; margin:0} h2{font-size:1.1rem; margin:0}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+.top{border-bottom:1px solid var(--line); padding:12px 16px; display:flex; gap:12px; align-items:center; flex-wrap:wrap}
+.top .sp{flex:1}
+.muted{color:var(--muted); font-size:.88rem}
+.wrap{max-width:1200px; margin:0 auto; padding:20px 16px 60px; display:flex; flex-direction:column; gap:16px}
+.login{max-width:380px; margin:60px auto; padding-inline:16px; display:flex; flex-direction:column; gap:14px}
+.field{display:flex; flex-direction:column; gap:4px}
+.field label{font-size:.88rem; font-weight:600}
+input,select{font:inherit; padding:7px 10px; border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--ink)}
+.btn{font:inherit; font-weight:600; font-size:.9rem; padding:7px 14px; border-radius:6px; border:1px solid var(--line); background:var(--soft); color:var(--ink); cursor:pointer}
+.btn:hover{background:#eef1f4}
+.btn.primary{background:var(--ok); border-color:var(--ok); color:#fff}
+.err{color:var(--bad); font-size:.88rem}
+.bar{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+.tabs{display:flex; gap:0; border-bottom:1px solid var(--line)}
+.tab{font:inherit; background:none; border:0; border-bottom:2px solid transparent; padding:8px 14px; cursor:pointer; color:var(--muted); font-weight:600}
+.tab[aria-selected="true"]{color:var(--ink); border-bottom-color:#fd8c73}
+.stats{display:flex; gap:24px; flex-wrap:wrap}
+.stats div{display:flex; flex-direction:column}
+.stats b{font-size:1.4rem; font-variant-numeric:tabular-nums}
+.tw{overflow-x:auto; border:1px solid var(--line); border-radius:6px}
+table{border-collapse:collapse; width:100%; font-size:.88rem}
+th,td{padding:7px 10px; border-bottom:1px solid var(--line); text-align:left; white-space:nowrap}
+th{background:var(--soft); font-weight:600; position:sticky; top:0; cursor:pointer; user-select:none}
+th.n,td.n{text-align:center; font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:0}
+.sc{display:inline-block; min-width:38px; padding:1px 6px; border-radius:10px; font-weight:600}
+.sc.ok{background:var(--ok-soft); color:var(--ok)} .sc.bad{background:var(--bad-soft); color:var(--bad)}
+.sc small{font-weight:400; color:var(--muted)}
+.empty{padding:24px; text-align:center; color:var(--muted)}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>Rekap Nilai · Kursus Perulangan For</h1><span class="sp"></span>
+  <span class="muted" id="me"></span>
+  <button class="btn" type="button" id="logout" hidden>Keluar</button>
+</header>
+
+<section class="login" id="login" hidden>
+  <h2>Masuk sebagai guru</h2>
+  <p class="muted">Gunakan akun yang dibuat di Supabase (Authentication &gt; Users) dan terdaftar di tabel <code>guru</code>.</p>
+  <form id="lf" style="display:flex;flex-direction:column;gap:12px">
+    <div class="field"><label for="em">Email</label><input id="em" type="email" required autocomplete="username"></div>
+    <div class="field"><label for="pw">Kata sandi</label><input id="pw" type="password" required autocomplete="current-password"></div>
+    <p class="err" id="lerr" hidden></p>
+    <div><button class="btn primary" type="submit">Masuk</button></div>
+  </form>
+</section>
+
+<p class="err wrap" id="cfgerr" hidden>Isi <code>SUPABASE_URL</code> dan <code>SUPABASE_ANON_KEY</code> di file <code>config.js</code> terlebih dahulu.</p>
+
+<main class="wrap" id="app" hidden>
+  <div class="bar">
+    <label class="muted" for="fk">Kelas</label><select id="fk"><option value="">Semua kelas</option></select>
+    <input id="fq" type="search" placeholder="Cari nama…" aria-label="Cari nama">
+    <span style="flex:1"></span>
+    <button class="btn" type="button" id="refresh">Muat ulang</button>
+    <button class="btn" type="button" id="csv">Unduh CSV</button>
+  </div>
+  <div class="stats" id="stats"></div>
+  <div class="tabs" role="tablist">
+    <button class="tab" type="button" role="tab" data-t="rekap" aria-selected="true">Rekap per siswa</button>
+    <button class="tab" type="button" role="tab" data-t="riwayat" aria-selected="false">Riwayat pengerjaan</button>
+  </div>
+  <div class="tw" id="tbl"></div>
+  <p class="muted">Nilai di rekap adalah nilai <b>tertinggi</b> tiap bab. Angka kecil di sebelahnya = jumlah percobaan. Hijau = lulus (≥ KKM), merah = belum lulus.</p>
+</main>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+"use strict";
+const CFG=Object.assign({KKM:70},window.KURSUS_CONFIG||{});
+const BAB=["Dari if ke for","Empat bagian for","Mundur dan melompat","for dan if bersama","Menjumlahkan dan loop abadi","Ujian akhir"];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+if(!CFG.SUPABASE_URL||!CFG.SUPABASE_ANON_KEY||!window.supabase){ $("cfgerr").hidden=false; return; }
+const db=window.supabase.createClient(CFG.SUPABASE_URL,CFG.SUPABASE_ANON_KEY);
+let ROWS=[], tab="rekap", sortKey="kelas", sortDir=1;
+
+async function session(){
+  const {data}=await db.auth.getSession();
+  if(data.session){ $("login").hidden=true; $("app").hidden=false; $("logout").hidden=false; $("me").textContent=data.session.user.email; load(); }
+  else { $("login").hidden=false; $("app").hidden=true; $("logout").hidden=true; $("me").textContent=""; }
+}
+$("lf").addEventListener("submit",async e=>{
+  e.preventDefault(); $("lerr").hidden=true;
+  const {error}=await db.auth.signInWithPassword({email:$("em").value.trim(),password:$("pw").value});
+  if(error){ $("lerr").hidden=false; $("lerr").textContent="Gagal masuk: email atau kata sandi salah."; return; }
+  session();
+});
+$("logout").onclick=async()=>{ await db.auth.signOut(); session(); };
+
+async function load(){
+  $("tbl").innerHTML=`<div class="empty">Memuat data…</div>`;
+  let all=[],from=0;
+  for(;;){
+    const {data,error}=await db.from("nilai_kuis").select("*").order("created_at",{ascending:false}).range(from,from+999);
+    if(error){ $("tbl").innerHTML=`<div class="empty">Gagal memuat: ${esc(error.message)}</div>`; return; }
+    all=all.concat(data); if(data.length<1000) break; from+=1000;
+  }
+  ROWS=all;
+  if(!all.length && !(await isGuru())){ $("tbl").innerHTML=`<div class="empty">Akun ini belum terdaftar di tabel <code>guru</code>, jadi nilai tidak bisa ditampilkan. Tambahkan email akun ini ke tabel guru di Supabase.</div>`; return; }
+  const kelas=[...new Set(all.map(r=>r.kelas))].sort();
+  const fk=$("fk"), cur=fk.value;
+  fk.innerHTML=`<option value="">Semua kelas</option>`+kelas.map(k=>`<option${k===cur?" selected":""}>${esc(k)}</option>`).join("");
+  render();
+}
+async function isGuru(){ const {data}=await db.from("guru").select("email").limit(1); return !!(data&&data.length); }
+
+function filtered(){
+  const k=$("fk").value, q=$("fq").value.trim().toLowerCase();
+  return ROWS.filter(r=>(!k||r.kelas===k)&&(!q||r.nama.toLowerCase().includes(q)));
+}
+function rekap(rows){
+  const m=new Map();
+  rows.forEach(r=>{
+    const key=r.kelas+"|"+r.no_absen+"|"+r.nama.toLowerCase();
+    if(!m.has(key)) m.set(key,{nama:r.nama,kelas:r.kelas,absen:r.no_absen,bab:{},last:r.created_at});
+    const s=m.get(key), b=s.bab[r.bab]||(s.bab[r.bab]={skor:-1,n:0});
+    b.n++; if(r.skor>b.skor) b.skor=r.skor;
+    if(r.created_at>s.last) s.last=r.created_at;
+  });
+  return [...m.values()].map(s=>{
+    const sk=Object.values(s.bab).map(b=>b.skor);
+    s.rata=sk.length?Math.round(sk.reduce((a,b)=>a+b,0)/sk.length):null;
+    s.lulus=BAB.filter((_,i)=>s.bab[i+1]&&s.bab[i+1].skor>=CFG.KKM).length;
+    return s;
+  });
+}
+const fmt=d=>new Date(d).toLocaleString("id-ID",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
+const sc=(v,n)=>v==null||v<0?`<span class="muted">–</span>`:`<span class="sc ${v>=CFG.KKM?"ok":"bad"}">${v}${n>1?` <small>×${n}</small>`:""}</span>`;
+
+function render(){
+  const rows=filtered(), R=rekap(rows);
+  const selesai=R.filter(s=>s.lulus===BAB.length).length;
+  const ujian=R.map(s=>s.bab[BAB.length]).filter(Boolean).map(b=>b.skor);
+  $("stats").innerHTML=`<div><span class="muted">Siswa</span><b>${R.length}</b></div><div><span class="muted">Selesai semua bab</span><b>${selesai}</b></div><div><span class="muted">Rata-rata ujian akhir</span><b>${ujian.length?Math.round(ujian.reduce((a,b)=>a+b,0)/ujian.length):"–"}</b></div><div><span class="muted">Total pengerjaan kuis</span><b>${rows.length}</b></div>`;
+  if(tab==="rekap"){
+    const val=s=>sortKey==="nama"?s.nama.toLowerCase():sortKey==="kelas"?s.kelas+String(s.absen).padStart(3,"0"):sortKey==="rata"?(s.rata??-1):sortKey==="progres"?s.lulus:sortKey.startsWith("b")?(s.bab[+sortKey.slice(1)]?.skor??-1):0;
+    R.sort((a,b)=>{const x=val(a),y=val(b); return (x>y?1:x<y?-1:0)*sortDir;});
+    if(!R.length){$("tbl").innerHTML=`<div class="empty">Belum ada nilai yang masuk.</div>`;return;}
+    $("tbl").innerHTML=`<table><thead><tr><th data-s="kelas">Kelas / Absen</th><th data-s="nama">Nama</th>${BAB.map((b,i)=>`<th class="n" data-s="b${i+1}" title="${esc(b)}">${i===BAB.length-1?"Ujian":"Bab "+(i+1)}</th>`).join("")}<th class="n" data-s="rata">Rata-rata</th><th class="n" data-s="progres">Lulus</th><th>Terakhir aktif</th></tr></thead><tbody>${
+      R.map(s=>`<tr><td>${esc(s.kelas)} · ${s.absen??"–"}</td><td>${esc(s.nama)}</td>${BAB.map((_,i)=>`<td class="n">${sc(s.bab[i+1]?.skor,s.bab[i+1]?.n)}</td>`).join("")}<td class="n">${s.rata??"–"}</td><td class="n">${s.lulus}/${BAB.length}</td><td class="muted">${fmt(s.last)}</td></tr>`).join("")}</tbody></table>`;
+  } else {
+    if(!rows.length){$("tbl").innerHTML=`<div class="empty">Belum ada riwayat.</div>`;return;}
+    $("tbl").innerHTML=`<table><thead><tr><th>Waktu</th><th>Kelas</th><th>Absen</th><th>Nama</th><th>Bab</th><th class="n">Benar</th><th class="n">Nilai</th><th class="n">Percobaan</th></tr></thead><tbody>${
+      rows.map(r=>`<tr><td>${fmt(r.created_at)}</td><td>${esc(r.kelas)}</td><td>${r.no_absen??"–"}</td><td>${esc(r.nama)}</td><td>${r.bab}. ${esc(r.judul_bab)}</td><td class="n">${r.benar}/${r.jumlah_soal}</td><td class="n">${sc(r.skor,1)}</td><td class="n">${r.percobaan}</td></tr>`).join("")}</tbody></table>`;
+  }
+}
+$("tbl").addEventListener("click",e=>{const th=e.target.closest("th[data-s]"); if(!th) return; const k=th.dataset.s; if(sortKey===k) sortDir*=-1; else {sortKey=k; sortDir=k.startsWith("b")||k==="rata"||k==="progres"?-1:1;} render();});
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{tab=t.dataset.t; document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected",x===t)); render();});
+$("fk").onchange=render; $("fq").oninput=render; $("refresh").onclick=load;
+$("csv").onclick=()=>{
+  const R=rekap(filtered()).sort((a,b)=>(a.kelas+String(a.absen).padStart(3,"0")).localeCompare(b.kelas+String(b.absen).padStart(3,"0")));
+  const head=["Kelas","No Absen","Nama",...BAB.map((b,i)=>`Bab ${i+1} ${b}`),"Rata-rata","Bab lulus"];
+  const q=v=>`"${String(v??"").replace(/"/g,'""')}"`;
+  const lines=[head.map(q).join(",")].concat(R.map(s=>[s.kelas,s.absen,s.nama,...BAB.map((_,i)=>s.bab[i+1]?s.bab[i+1].skor:""),s.rata??"",s.lulus].map(q).join(",")));
+  const blob=new Blob(["﻿"+lines.join("\n")],{type:"text/csv;charset=utf-8"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=`rekap-nilai-for${$("fk").value?"-"+$("fk").value:""}.csv`; document.body.appendChild(a); a.click(); a.remove();
+};
+db.auth.onAuthStateChange(()=>{});
+session();
+})();
+</script>
+</body>
+</html>
