@@ -94,8 +94,21 @@ const CFG=Object.assign({KKM:70},window.KURSUS_CONFIG||{});
 const BAB=["Dari if ke for","Empat bagian for","Mundur dan melompat","for dan if bersama","Menjumlahkan dan loop abadi","Ujian akhir"];
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-if(!CFG.SUPABASE_URL||!CFG.SUPABASE_ANON_KEY||!window.supabase){ $("cfgerr").hidden=false; return; }
+CFG.SUPABASE_URL=String(CFG.SUPABASE_URL||"").trim().replace(/\/+$/,"").replace(/\/rest\/v1$/,"");
+CFG.SUPABASE_ANON_KEY=String(CFG.SUPABASE_ANON_KEY||"").trim();
+if(!window.supabase){ $("cfgerr").hidden=false; $("cfgerr").innerHTML="Pustaka Supabase gagal dimuat. Periksa koneksi internet, lalu muat ulang halaman."; return; }
+if(!CFG.SUPABASE_URL||!CFG.SUPABASE_ANON_KEY){ $("cfgerr").hidden=false; return; }
+if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(CFG.SUPABASE_URL)){ $("cfgerr").hidden=false; $("cfgerr").innerHTML="Format <code>SUPABASE_URL</code> di config.js sepertinya salah. Seharusnya seperti <code>https://abcdefgh.supabase.co</code> (tanpa garis miring atau tambahan di belakangnya). Saat ini: <code>"+esc(CFG.SUPABASE_URL)+"</code>"; return; }
 const db=window.supabase.createClient(CFG.SUPABASE_URL,CFG.SUPABASE_ANON_KEY);
+function loginErr(error){
+  const m=String(error&&error.message||error||"");
+  if(/invalid login credentials/i.test(m)) return "Email atau kata sandi salah. Pastikan sama persis dengan user di Supabase (Authentication > Users). Kalau ragu, buka user tersebut di Supabase lalu atur ulang kata sandinya.";
+  if(/email not confirmed/i.test(m)) return "Akun belum dikonfirmasi. Di Supabase buka Authentication > Users, klik user ini, lalu pilih Confirm user / Confirm email. Atau hapus dan buat ulang user dengan mencentang Auto Confirm User.";
+  if(/invalid api key|no api key|apikey/i.test(m)) return "Kunci SUPABASE_ANON_KEY di config.js salah. Salin ulang kunci anon/publishable dari Project Settings > API Keys (jangan pakai kunci secret/service_role).";
+  if(/failed to fetch|network|load failed/i.test(m)) return "Tidak bisa terhubung ke Supabase. Periksa SUPABASE_URL di config.js dan pastikan project Supabase tidak sedang di-pause.";
+  if(/email logins are disabled|provider is disabled/i.test(m)) return "Login dengan email dimatikan. Di Supabase buka Authentication > Sign In / Providers lalu aktifkan Email.";
+  return "Gagal masuk: "+m;
+}
 let ROWS=[], tab="rekap", sortKey="kelas", sortDir=1;
 
 async function session(){
@@ -105,8 +118,11 @@ async function session(){
 }
 $("lf").addEventListener("submit",async e=>{
   e.preventDefault(); $("lerr").hidden=true;
-  const {error}=await db.auth.signInWithPassword({email:$("em").value.trim(),password:$("pw").value});
-  if(error){ $("lerr").hidden=false; $("lerr").textContent="Gagal masuk: email atau kata sandi salah."; return; }
+  const btn=e.submitter||$("lf").querySelector("button"); btn.disabled=true; btn.textContent="Masuk…";
+  let error;
+  try{ ({error}=await db.auth.signInWithPassword({email:$("em").value.trim().toLowerCase(),password:$("pw").value})); }catch(x){ error=x; }
+  btn.disabled=false; btn.textContent="Masuk";
+  if(error){ $("lerr").hidden=false; $("lerr").textContent=loginErr(error); return; }
   session();
 });
 $("logout").onclick=async()=>{ await db.auth.signOut(); session(); };
@@ -120,7 +136,7 @@ async function load(){
     all=all.concat(data); if(data.length<1000) break; from+=1000;
   }
   ROWS=all;
-  if(!all.length && !(await isGuru())){ $("tbl").innerHTML=`<div class="empty">Akun ini belum terdaftar di tabel <code>guru</code>, jadi nilai tidak bisa ditampilkan. Tambahkan email akun ini ke tabel guru di Supabase.</div>`; return; }
+  if(!all.length && !(await isGuru())){ $("tbl").innerHTML=`<div class="empty">Login berhasil, tetapi email <b>${esc(($("me").textContent||"").trim())}</b> belum terdaftar di tabel <code>guru</code>, jadi nilai tidak bisa ditampilkan.<br>Buka Supabase &gt; Table Editor &gt; tabel <code>guru</code>, lalu tambahkan email ini persis sama (huruf kecil semua). Setelah itu klik Muat ulang.</div>`; return; }
   const kelas=[...new Set(all.map(r=>r.kelas))].sort();
   const fk=$("fk"), cur=fk.value;
   fk.innerHTML=`<option value="">Semua kelas</option>`+kelas.map(k=>`<option${k===cur?" selected":""}>${esc(k)}</option>`).join("");
